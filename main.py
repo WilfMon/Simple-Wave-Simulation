@@ -1,30 +1,53 @@
 import numpy as np
 import pygame as pg
-import sys, threading
+import sys, threading, time
 
 
 
 waves_list = []
 waves_to_draw = []
 
+start = False
+run = False
+
 def console():
     while True:
         cmd = input(">> ")
 
-        if cmd.strip().lower() == "help":
+        if cmd.strip().lower() == "/help":
             print("""
                 -- List of Commands --
+                
+                - Use _ if you want to keep the default value
                   
-                create a sine wave: /w 'name' 'direction' 'wave lengh' 'frequency' 'amplitude' 'delta'
-                draw a wave: /d 'name' 'color (RGB)' 'particle size' 'y offset'
+                Start the Simulation:
+                /start
                   
-                delete a wave: /w-delete 'name'
+                Create Wave:
+                /w 'name' 'direction' 'wave_lengh' 'frequency' 'amplitude' 'delta'
+                
+                Draw Wave:
+                /d 'name' 'color (RGB)' 'particle_size' 'y offset'
                   
-                update properties of sine wave: /w-'name' 'property' 'value'
-
+                Update Wave:
+                /w-update 'name' 'attribute' 'new value'
+                
+                Delete Wave: 
+                /w-delete 'name'
+                
+                Show Current Waves:
+                /w-list
+                
+                Create Basic Setup:
+                /basic
                 """)
-            
 
+    # Start Simulation
+        if cmd.strip().lower().split(" ")[0] == "/start":
+            global run
+            run = True
+
+    # Create Wave
         if cmd.strip().lower().split(" ")[0] == "/w":
 
             name = cmd.split(" ")[1]
@@ -32,37 +55,38 @@ def console():
             a = sine_wave(name=name)
 
             try:
-                direction = cmd.split(" ")[2]
-                a.direction = direction
-            except:
-                pass
+                if cmd.split(" ")[2] != "_":
+                    direction = cmd.split(" ")[2]
+                    a.direction = direction
+            except: pass
 
             try:
-                wave_lengh = float(cmd.split(" ")[3])
-                a.wave_len = wave_lengh
-            except:
-                pass
+                if cmd.split(" ")[3] != "_":
+                    wave_lengh = float(cmd.split(" ")[3])
+                    a.wave_len = wave_lengh
+            except: pass
 
             try:
-                frequency = float(cmd.split(" ")[4])
-                a.freq = frequency
-            except:
-                pass
+                if cmd.split(" ")[4] != "_":
+                    frequency = float(cmd.split(" ")[4])
+                    a.freq = frequency
+            except: pass
+                
+            try:
+                if cmd.split(" ")[5] != "_":
+                    amplitude = float(cmd.split(" ")[5])
+                    a.A = amplitude
+            except: pass    
+                
+            try:
+                if cmd.split(" ")[6] != "_":
+                    delta = float(cmd.split(" ")[6])
+                    a.delta = delta
+            except: pass
             
-            try:
-                amplitude = float(cmd.split(" ")[5])
-                a.A = amplitude
-            except:
-                pass
-
-            try:
-                delta = float(cmd.split(" ")[6])
-                a.delta = delta
-            except:
-                pass
-
             waves_list.append(a)
 
+    # Draw Wave
         if cmd.strip().lower().split(" ")[0] == "/d":
 
             name = cmd.split(" ")[1]
@@ -70,34 +94,122 @@ def console():
             for wave in waves_list:
                 if wave.name == name:
 
-                    try:
-                        r = int(cmd.split(" ")[2])
-                        g = int(cmd.split(" ")[3])
-                        b = int(cmd.split(" ")[4])
-                        wave.color = (r, g, b)
-                    except:
-                        pass
+                    i = 0
 
                     try:
-                        particle_size = float(cmd.split(" ")[5])
-                        wave.particle_size = particle_size
-                    except:
-                        pass
+                        if cmd.split(" ")[2] != "_":
+                            r = int(cmd.split(" ")[2])
+                            g = int(cmd.split(" ")[3])
+                            b = int(cmd.split(" ")[4])
+                            wave.color = (r, g, b)
+                        else: i = -2
+                    except: pass
 
                     try:
-                        y_offset = float(cmd.split(" ")[6])
-                        wave.y_offset = y_offset
-                    except:
-                        pass
+                        if cmd.split(" ")[5 + i] != "_":
+                            particle_size = float(cmd.split(" ")[5 + i])
+                            wave.particle_size = particle_size
+                    except: pass
+                    
+                    try:
+                        if cmd.split(" ")[6 + i] != "_":
+                            y_offset = float(cmd.split(" ")[6 + i])
+                            wave.y_offset = y_offset
+                    except: pass
 
                     waves_to_draw.append(wave)
 
+    # Update Wave
+        if cmd.strip().lower().split(" ")[0] == "/w-update":
             
+            name = cmd.split(" ")[1]
             
+            attribute = cmd.split(" ")[2]
+            new_value = cmd.split(" ")[3]
+            
+            for i, wave in enumerate(waves_list):
+            
+                if wave.name == name:
+            
+                    if attribute == "name":
+                        wave.name = new_value
+                    
+                    if attribute == "direction":
+                        wave.direction = new_value
+                        
+                    if attribute == "wave_lengh":
+                        wave.wave_lengh = new_value
+                        
+                    if attribute == "frequency":
+                        wave.frequency = new_value
+                        
+                    if attribute == "amplitude":
+                        wave.amplitude = new_value
+                        
+                    if attribute == "delta":
+                        wave.delta = new_value
+                        
+                    if attribute == "color":
+                        r = int(cmd.split(" ")[3])
+                        g = int(cmd.split(" ")[4])
+                        b = int(cmd.split(" ")[5])
+                        wave.color = (r, g, b)
+                        
+                    if attribute == "particle_size":
+                        wave.particle_size = new_value
+                        
+                    if attribute == "y_offset":
+                        wave.y_offset = new_value
+                        
+                    waves_list[i] = wave
+                    
+                    try:
+                        waves_to_draw[i] = wave
+                    except:
+                        pass      
+        
+    # Delete Wave
+        if cmd.strip().lower().split(" ")[0] == "/w-delete":
+            
+            name = cmd.split(" ")[1]
+            
+            for wave in waves_list:
+            
+                if wave.name == name:
+                
+                    waves_list.remove(wave)
+                    
+                    try:
+                        waves_to_draw.remove(wave)
+                    except:
+                        pass
+    
+    # Show Current Waves
+        if cmd.strip().lower().split(" ")[0] == "/w-list":
+            
+            print("Existing waves")
+            for i in waves_list:
+                
+                print(f"- {i.name}")
+                
+            print("Drawn waves")
+            for i in waves_to_draw:
+                
+                print(f"- {i.name}")
+
+    # Create Basic Setup
+        if cmd.strip().lower().split(" ")[0] == "/basic":
+            
+            waves_list = [sine_wave(name="y1"), sine_wave(name="y2", direction="negative")]
+            waves_to_draw = [sine_wave(name="y1"), sine_wave(name="y2", direction="negative")]
+            
+            run = True
 
 
 console_thread = threading.Thread(target=console, daemon=True)
 console_thread.start()
+
+
 
 WIDTH, HEIGHT = 1200, 800
 
@@ -119,9 +231,9 @@ class sine_wave():
             self, 
             name,
             direction="positive", 
-            wave_len=WAVE_RANGE / 8, 
-            freq=0.5, 
-            A=20,
+            wave_lengh=WAVE_RANGE / 8, 
+            frequency=0.5, 
+            amplitude=20,
             delta=np.pi / 2,
             color=(255, 0, 0),
             particle_size=2,
@@ -130,9 +242,9 @@ class sine_wave():
         
         self.name = name
         self.direction = direction
-        self.wave_len = wave_len
-        self.freq = freq
-        self.A = A
+        self.wave_len = wave_lengh
+        self.freq = frequency
+        self.A = amplitude
         self.delta = delta
 
         self.color = color
@@ -202,9 +314,15 @@ class draw_pygame():
                     wave[1],
                     (wave[0][i][0], wave[0][i][1] + wave[3]), # position of particle
                     wave[2]
-                    ) 
-                
+                    )
 
+
+
+while not start:
+    time.sleep(20 / 1000)
+    
+    if run:
+        start = True
 
 # Set up display
 pg.init()
