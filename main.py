@@ -200,8 +200,11 @@ def console():
     # Create Basic Setup
         if cmd.strip().lower().split(" ")[0] == "/basic":
             
-            waves_list = [sine_wave(name="y1"), sine_wave(name="y2", direction="negative")]
-            waves_to_draw = [sine_wave(name="y1"), sine_wave(name="y2", direction="negative")]
+            basic_waves = [sine_wave(name="y1"), sine_wave(name="y2", direction="negative", y_offset=200)]
+            
+            for wave in basic_waves:
+                waves_list.append(wave)
+                waves_to_draw.append(wave)
             
             run = True
 
