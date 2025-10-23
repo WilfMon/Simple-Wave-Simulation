@@ -2,8 +2,6 @@ import numpy as np
 import pygame as pg
 import sys
 
-
-
 # Set up display
 pg.init()
 
@@ -15,7 +13,7 @@ pg.display.set_caption("Simple Wave Simulation")
 RES = 4
 # for positions of particles along x
 x_pos_particles = np.arange(0, WIDTH - 2*(WIDTH / 10) + 1, RES)
-print(x_pos_particles)
+#print(x_pos_particles)
 
 
 
@@ -98,8 +96,8 @@ class sine_wave_pulse():
         for i in range(tc, pulse_lengh + tc):
             particle_pulse_array.append(int(x_pos_particles[i]))
             
-        print(particle_pulse_array)
-        print(len(particle_pulse_array))
+        #print(particle_pulse_array)
+        #print(len(particle_pulse_array))
         
         particle_pos_array = []     
         for i in range(len(self.particle_info_array)):
@@ -118,8 +116,8 @@ class sine_wave_pulse():
                     
                 i_of_pulse = np.arange(i, pulse_lengh + i) % len(particle_pos_array)
                 
-                print(i_of_pulse)
-                print(len(i_of_pulse))
+                #print(i_of_pulse)
+                #print(len(i_of_pulse))
                 particle_stationary_array = np.delete(particle_pos_array, i_of_pulse)
                     
                 break
@@ -153,7 +151,6 @@ class sine_wave_pulse():
                 
 
 
-
 clock = pg.time.Clock()
 t = 0
 
@@ -176,28 +173,32 @@ while running:
         
         r_wave.draw_wave(i, t, y_offset=100, color=(0, 0, 255))
         
+
+    y1 = sine_wave()
+    y2 = sine_wave(direction="negative", A=5)
+    y3 = sine_wave(freq=0.6, A=10)
     for i in x_pos_particles:
         
         # control how far down the screen the wave is displayed
         y_offset = 200
         
-        x = r_wave.x_sine(i)
-        y = r_wave.y_sine(i, t) + i_wave.y_sine(i, t) + y_offset
+        x = y1.x_sine(i)
+        y = y1.y_sine(i, t) + y2.y_sine(i, t) + y3.y_sine(i, t)+ y_offset
         
         pg.draw.circle(screen, (0, 255, 0), (x, y), 2)
 
     
-    
-    pulse_on_line = sine_wave_pulse()
+    if False:
+        pulse_on_line = sine_wave_pulse()
+            
+        pulse_on_line.draw_string_pulse(x1=0, x2=320, y_offset=600)
+        pulse_on_line.draw_string_pulse(x1=320, x2=640, y_offset=600, particle_size=4)
+        pulse_on_line.draw_string_pulse(x1=640, x2=960, y_offset=600)
         
-    pulse_on_line.draw_string_pulse(x1=0, x2=320, y_offset=600)
-    pulse_on_line.draw_string_pulse(x1=320, x2=640, y_offset=600, particle_size=4)
-    pulse_on_line.draw_string_pulse(x1=640, x2=960, y_offset=600)
-    
-    new_t = pulse_on_line.draw_pulse_moving(t)
-    
-    if new_t != False:
-        t = new_t
+        new_t = pulse_on_line.draw_pulse_moving(t)
+        
+        if new_t != False:
+            t = new_t
         
 
     # Update display
