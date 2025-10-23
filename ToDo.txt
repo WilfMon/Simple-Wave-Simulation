@@ -1,3 +1,4 @@
 - create a terminal when booted up to make waves
+- impliment fixed timestep simulation
 
 - figure out how to do wave puleses mabye ask tutor
