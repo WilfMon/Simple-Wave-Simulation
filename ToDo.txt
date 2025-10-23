@@ -1,0 +1,3 @@
+- create a terminal when booted up to make waves
+
+- figure out how to do wave puleses mabye ask tutor
