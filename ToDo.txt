@@ -1,4 +1,12 @@
-- create a terminal when booted up to make waves
 - impliment fixed timestep simulation
+- optimize
+- add axis
+- match up with real life for freq and shit
 
 - figure out how to do wave puleses mabye ask tutor
+
+
+
+
+
+- CHANGE THE SYSTEM TO ONLY HAVE ONE LIST TO CONTROL WAVES AND EACH WAVE SHOULD HAVE A "VISABLE" ATTRIBUTE
