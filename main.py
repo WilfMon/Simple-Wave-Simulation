@@ -164,6 +164,66 @@ def live_cmds():
                         else: i = -2
                     except: pass
 
+    # Update Wave
+        if cmd.strip().lower().split(" ")[0] == "/w-update":
+            
+            name = cmd.split(" ")[1]
+            
+            attribute = cmd.split(" ")[2]
+            new_value = cmd.split(" ")[3]
+            
+            for i, wave in enumerate(waves_list):
+            
+                if wave.name == name:
+            
+                    if attribute == "name":
+                        wave.name = new_value
+                    
+                    if attribute == "direction":
+                        wave.direction = new_value
+                        
+                    if attribute == "wave_lengh":
+                        wave.wave_lengh = new_value
+                        
+                    if attribute == "frequency":
+                        wave.frequency = new_value
+                        
+                    if attribute == "amplitude":
+                        wave.amplitude = new_value
+                        
+                    if attribute == "delta":
+                        wave.delta = new_value
+                        
+                    if attribute == "color":
+                        r = int(cmd.split(" ")[3])
+                        g = int(cmd.split(" ")[4])
+                        b = int(cmd.split(" ")[5])
+                        wave.color = (r, g, b)
+                        
+                    if attribute == "particle_size":
+                        wave.particle_size = new_value
+                        
+                    if attribute == "y_offset":
+                        wave.y_offset = new_value
+                        
+                    waves_list[i] = wave
+                    
+                    try:
+                        waves_to_draw[i] = wave
+                    except:
+                        pass      
+        
+    # Delete Wave
+        if cmd.strip().lower().split(" ")[0] == "/w-delete":
+            
+            name = cmd.split(" ")[1]
+            
+            for wave in waves_list:
+            
+                if wave.name == name:
+                
+                    waves_list.remove(wave)
+                    
                     try:
                         if cmd.split(" ")[5 + i] != "_":
                             particle_size = float(cmd.split(" ")[5 + i])
@@ -675,6 +735,13 @@ class draw_pygame():
                         width=ax.width
                         )
 
+
+
+while not start:
+    time.sleep(20 / 1000)
+    
+    if run:
+        start = True
 
 
 while not start:
