@@ -66,12 +66,13 @@ def live_cmds():
                 -- List of Commands --
                 
                 - Use _ if you want to keep the default value
+                - ID, 0 = sine wave, 2 = longitudinal wave
                   
                 Start the Simulation:
                 /start
                   
                 Create Wave:
-                /w 'name' 'direction' 'wave_lengh' 'frequency' 'amplitude' 'delta'
+                /w 'name' 'ID' 'direction' 'wave_lengh' 'frequency' 'amplitude' 'delta'
                 
                 Draw Wave:
                 /w-d 'name' 'color (RGB)' 'particle_size' 'y offset'
@@ -85,11 +86,14 @@ def live_cmds():
                 Wipe Wave (keep the wave but remove it from the visualisation):
                 /w-wipe 'name'
                 
-                Add Waves: (max 10)
+                Add Waves:
                 /w-add 'number of waves' 'name new wave' 'name wave 1' 'name wave 2' ... 'name wave n'
                   
                 Show Current Waves:
                 /w-list
+                
+                Show Wave Attributes:
+                /w-attributes 'name'
                   
                 Draw Axis:
                 /a-d 'name'
@@ -99,46 +103,56 @@ def live_cmds():
                 """)
 
     # Start Simulation
-        if cmd.strip().lower().split(" ")[0] == "/start":
+        elif cmd.strip().lower().split(" ")[0] == "/start":
             global run
             run = True
 
     # Create Wave
-        if cmd.strip().lower().split(" ")[0] == "/w":
+        elif cmd.strip().lower().split(" ")[0] == "/w":
 
             name = cmd.split(" ")[1]
 
-            wave = sine_wave(name=name)
             axis = axis_for_wave(name=name)
-
 
             try:
                 if cmd.split(" ")[2] != "_":
-                    direction = cmd.split(" ")[2]
-                    wave.direction = direction
+                    if cmd.split(" ")[2] == 0:
+                        
+                        wave = sine_wave(name=name)
+                        
+                    if cmd.split(" ")[2] == 2:
+                        
+                        wave = long_wave(name=name)
+                        
             except: pass
 
             try:
                 if cmd.split(" ")[3] != "_":
-                    wave_lengh = float(cmd.split(" ")[3])
-                    wave.wave_len = wave_lengh
+                    direction = cmd.split(" ")[3]
+                    wave.direction = direction
             except: pass
 
             try:
                 if cmd.split(" ")[4] != "_":
-                    frequency = float(cmd.split(" ")[4])
+                    velocity = float(cmd.split(" ")[4])
+                    wave.velocity = velocity
+            except: pass
+
+            try:
+                if cmd.split(" ")[5] != "_":
+                    frequency = float(cmd.split(" ")[5])
                     wave.freq = frequency
             except: pass
                 
             try:
-                if cmd.split(" ")[5] != "_":
-                    amplitude = float(cmd.split(" ")[5])
-                    wave.A = amplitude
+                if cmd.split(" ")[6] != "_":
+                    amplitude = float(cmd.split(" ")[6])
+                    wave.amplitude = amplitude
             except: pass    
                 
             try:
-                if cmd.split(" ")[6] != "_":
-                    delta = float(cmd.split(" ")[6])
+                if cmd.split(" ")[7] != "_":
+                    delta = float(cmd.split(" ")[7])
                     wave.delta = delta
             except: pass
             
@@ -164,66 +178,6 @@ def live_cmds():
                         else: i = -2
                     except: pass
 
-    # Update Wave
-        if cmd.strip().lower().split(" ")[0] == "/w-update":
-            
-            name = cmd.split(" ")[1]
-            
-            attribute = cmd.split(" ")[2]
-            new_value = cmd.split(" ")[3]
-            
-            for i, wave in enumerate(waves_list):
-            
-                if wave.name == name:
-            
-                    if attribute == "name":
-                        wave.name = new_value
-                    
-                    if attribute == "direction":
-                        wave.direction = new_value
-                        
-                    if attribute == "wave_lengh":
-                        wave.wave_lengh = new_value
-                        
-                    if attribute == "frequency":
-                        wave.frequency = new_value
-                        
-                    if attribute == "amplitude":
-                        wave.amplitude = new_value
-                        
-                    if attribute == "delta":
-                        wave.delta = new_value
-                        
-                    if attribute == "color":
-                        r = int(cmd.split(" ")[3])
-                        g = int(cmd.split(" ")[4])
-                        b = int(cmd.split(" ")[5])
-                        wave.color = (r, g, b)
-                        
-                    if attribute == "particle_size":
-                        wave.particle_size = new_value
-                        
-                    if attribute == "y_offset":
-                        wave.y_offset = new_value
-                        
-                    waves_list[i] = wave
-                    
-                    try:
-                        waves_to_draw[i] = wave
-                    except:
-                        pass      
-        
-    # Delete Wave
-        if cmd.strip().lower().split(" ")[0] == "/w-delete":
-            
-            name = cmd.split(" ")[1]
-            
-            for wave in waves_list:
-            
-                if wave.name == name:
-                
-                    waves_list.remove(wave)
-                    
                     try:
                         if cmd.split(" ")[5 + i] != "_":
                             particle_size = float(cmd.split(" ")[5 + i])
@@ -258,17 +212,19 @@ def live_cmds():
                     if attribute == "direction":
                         wave.direction = new_value
                         
-                    if attribute == "wave_lengh":
-                        wave.wave_lengh = int(new_value)
+                    if attribute == "velocity":
+                        wave.velocity = float(new_value)
                         
                     if attribute == "frequency":
-                        wave.frequency = int(new_value)
+                        wave.frequency = float(new_value)
+                                                
+                        print("worked")
                         
                     if attribute == "amplitude":
-                        wave.amplitude = int(new_value)
+                        wave.amplitude = float(new_value)
                         
                     if attribute == "delta":
-                        wave.delta = int(new_value)
+                        wave.delta = float(new_value)
                         
                     if attribute == "color":
                         r = int(cmd.split(" ")[3])
@@ -280,7 +236,7 @@ def live_cmds():
                         wave.particle_size = int(new_value)
                         
                     if attribute == "y_offset":
-                        wave.y_offset = int(new_value)
+                        wave.y_offset = float(new_value)
                         axis_list[wave].y_offset = wave.y_offset
                         
     # Delete Wave
@@ -331,7 +287,32 @@ def live_cmds():
             for wave in waves_list:
                 
                 print(f"{wave.name} - drawn: {wave.draw}")
-
+                
+    # Show Wave Attributes
+        elif cmd.strip().lower().split(" ")[0] == "/w-attributes":
+            
+            name = cmd.split(" ")[1]
+            
+            for wave in waves_list:
+            
+                if wave.name == name and (wave.ID == 0 or wave.ID == 2):
+                    
+                    print(f"Direction: {wave.direction}")
+                    print(f"Velocity: {wave.velocity}")
+                    print(f"Frequency: {wave.frequency}")
+                    print(f"Amplitude: {wave.amplitude}")
+                    print(f"Delta: {wave.delta}")
+                    print(f"Color: {wave.color}")
+                    print(f"Particle Size: {wave.particle_size}")
+                    print(f"Y Offset: {wave.y_offset}")
+                    
+                if wave.name == name and (wave.ID == 1 or wave.ID == 3):
+                    
+                    print(f"Names of Waves Added: {wave.wave_name_to_add}")
+                    print(f"Color: {wave.color}")
+                    print(f"Particle Size: {wave.particle_size}")
+                    print(f"Y Offset: {wave.y_offset}")
+                    
     # Draw Axis
         elif cmd.strip().lower().split(" ")[0] == "/a-d":
 
@@ -399,7 +380,7 @@ def live_cmds():
             
             run = True
 
-        elif cmd.strip().lower().split(" ")[0] == "/d3": 
+        elif cmd.strip().lower().split(" ")[0] == "/d4": 
 
             basic_waves = [
                 sine_wave(name="y1"), 
@@ -463,7 +444,7 @@ class sine_wave():
             velocity=WAVE_SPEED,
             wave_lengh=340,
             frequency=1.0625, 
-            amplitude=40,
+            amplitude=50,
             delta=np.pi / 2,
             color=RED,
             particle_size=2,
@@ -474,13 +455,13 @@ class sine_wave():
         self.ID = ID
         self.draw = draw
 
-        self.freq = frequency
+        self.frequency = frequency
 
-        self.wave_lengh = velocity / self.freq
+        self.wave_lengh = velocity / self.frequency
         self.velocity = velocity
 
         self.direction = direction
-        self.A = amplitude
+        self.amplitude = amplitude
         self.delta = delta
 
         self.color = color
@@ -494,14 +475,14 @@ class sine_wave():
     def y_sine(self, x, t):
 
         # calculate w: angular frequency, k: wavenumber
-        w = 2*np.pi * self.freq
+        w = 2*np.pi * self.frequency
         k = w / (self.velocity)
         
         if self.direction == "positive":
-            return self.A * np.cos(k * x - w * t + self.delta)
+            return self.amplitude * np.cos(k * x - w * t + self.delta)
         
         if self.direction == "negative":
-            return self.A * np.cos(k * x + w * t + self.delta)
+            return self.amplitude * np.cos(k * x + w * t + self.delta)
         
     def calc_sine_wave(self, t, x=x_pos_particles):
 
@@ -735,13 +716,6 @@ class draw_pygame():
                         width=ax.width
                         )
 
-
-
-while not start:
-    time.sleep(20 / 1000)
-    
-    if run:
-        start = True
 
 
 while not start:
