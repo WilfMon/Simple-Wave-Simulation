@@ -1,16 +1,26 @@
 import numpy as np
 import pygame as pg
-import sys, threading, time
+import sys, threading, time, random
 
+
+
+ORANGE = (200, 150, 0)
+RED = (255, 0, 0)
+BABY_BLUE = (0, 255, 255)
 
 
 """
 NOTES
 
-- 100 pixels = 1m
+- 50 pixels = 1m
+
+- wave speed is 340m/s (sound in air)
+- waves are frequency dependant
 
 """
 
+PIXEL_FACTOR = 0.5
+WAVE_SPEED = 340
 
 
 waves_list = []
@@ -19,10 +29,12 @@ axis_list = []
 start = False
 run = False
 
+
+
 def setup_cmds():
 
     #       width height fps time res
-    consts = [1200, 800, 60, 1, 1]
+    consts = [1600, 800, 24, 0.5, 0.6]
 
     setup_cmd = input("Do you want to select settings?(y/n)\n>> ")
 
@@ -41,6 +53,8 @@ def setup_cmds():
         print("Default settings applied")
 
     return consts
+
+
 
 def live_cmds():
     
@@ -80,8 +94,8 @@ def live_cmds():
                 Draw Axis:
                 /a-d 'name'
                 
-                Create Basic Setup:
-                /basic
+                Demos:
+                /d(1, 2, 3, ...)
                 """)
 
     # Start Simulation
@@ -132,7 +146,7 @@ def live_cmds():
             axis_list.append(axis)
 
     # Draw Wave
-        if cmd.strip().lower().split(" ")[0] == "/w-d":
+        elif cmd.strip().lower().split(" ")[0] == "/w-d":
 
             name = cmd.split(" ")[1]
 
@@ -167,7 +181,7 @@ def live_cmds():
                     wave.draw = True
 
     # Update Wave
-        if cmd.strip().lower().split(" ")[0] == "/w-update":
+        elif cmd.strip().lower().split(" ")[0] == "/w-update":
             
             name = cmd.split(" ")[1]
             
@@ -185,16 +199,16 @@ def live_cmds():
                         wave.direction = new_value
                         
                     if attribute == "wave_lengh":
-                        wave.wave_lengh = new_value
+                        wave.wave_lengh = int(new_value)
                         
                     if attribute == "frequency":
-                        wave.frequency = new_value
+                        wave.frequency = int(new_value)
                         
                     if attribute == "amplitude":
-                        wave.amplitude = new_value
+                        wave.amplitude = int(new_value)
                         
                     if attribute == "delta":
-                        wave.delta = new_value
+                        wave.delta = int(new_value)
                         
                     if attribute == "color":
                         r = int(cmd.split(" ")[3])
@@ -203,14 +217,14 @@ def live_cmds():
                         wave.color = (r, g, b)
                         
                     if attribute == "particle_size":
-                        wave.particle_size = new_value
+                        wave.particle_size = int(new_value)
                         
                     if attribute == "y_offset":
-                        wave.y_offset = new_value
-                        axis_list[wave].y_offset = y_offset
+                        wave.y_offset = int(new_value)
+                        axis_list[wave].y_offset = wave.y_offset
                         
     # Delete Wave
-        if cmd.strip().lower().split(" ")[0] == "/w-delete":
+        elif cmd.strip().lower().split(" ")[0] == "/w-delete":
             
             name = cmd.split(" ")[1]
             
@@ -221,7 +235,7 @@ def live_cmds():
                     waves_list.remove(wave)
 
     # Wipe Wave
-        if cmd.strip().lower().split(" ")[0] == "/w-wipe":
+        elif cmd.strip().lower().split(" ")[0] == "/w-wipe":
             
             name = cmd.split(" ")[1]
             
@@ -232,7 +246,7 @@ def live_cmds():
                     wave.draw = False
     
     # Add Waves
-        if cmd.strip().lower().split(" ")[0] == "/w-add":
+        elif cmd.strip().lower().split(" ")[0] == "/w-add":
 
             no = int(cmd.split(" ")[1])
 
@@ -251,7 +265,7 @@ def live_cmds():
             waves_list.append(wave)
             
     # Show Current Waves
-        if cmd.strip().lower().split(" ")[0] == "/w-list":
+        elif cmd.strip().lower().split(" ")[0] == "/w-list":
             
             print("Existing waves")
             for wave in waves_list:
@@ -259,7 +273,7 @@ def live_cmds():
                 print(f"{wave.name} - drawn: {wave.draw}")
 
     # Draw Axis
-        if cmd.strip().lower().split(" ")[0] == "/a-d":
+        elif cmd.strip().lower().split(" ")[0] == "/a-d":
 
             name = cmd.split(" ")[1]
 
@@ -268,42 +282,12 @@ def live_cmds():
 
                     axis.draw = True
 
-    # Create Basic Setup
-        if cmd.strip().lower().split(" ")[0] == "/basic":
-            
-            basic_waves = [sine_wave(name="y1"), sine_wave(name="y2", direction="negative", y_offset=200), sine_wave_product(name="ya", wave_name_to_add=["y1", "y2"], color=(200, 150, 0), y_offset=300)]
-            
-            for wave in basic_waves:
-
-                wave.draw = True
-
-                waves_list.append(wave)
-            
-            run = True
-
-    # Debugging
-        if cmd.strip().lower().split(" ")[0] == "/debug1":
+    # Demos
+        elif cmd.strip().lower().split(" ")[0] == "/d1":
 
             basic_waves = [
                 sine_wave(name="y1"), 
-                sine_wave(name="y2", direction="negative", wave_lengh=30),
-                sine_wave(name="y3", direction="positive", wave_lengh=30),
-                sine_wave_product(name="ya", wave_name_to_add=["y1", "y2", "y3"], color=(200, 150, 0), y_offset=300)
-                ]
-            
-            for wave in basic_waves:
-
-                wave.draw = True
-
-                waves_list.append(wave)
-            
-            run = True
-
-        if cmd.strip().lower().split(" ")[0] == "/debug2":
-
-            basic_waves = [
-                sine_wave(name="y1", direction="positive", wave_lengh=30),
-                sine_wave(name="y2", direction="negative", wave_lengh=36),
+                sine_wave(name="y2", direction="negative"),
                 sine_wave_product(name="ya", wave_name_to_add=["y1", "y2"], color=(200, 150, 0), y_offset=300)
                 ]
             
@@ -315,9 +299,71 @@ def live_cmds():
             
             run = True
 
-        
+        elif cmd.strip().lower().split(" ")[0] == "/d2":
+
+            basic_waves = [
+                sine_wave(name="y1", direction="positive", frequency=2, velocity=75),
+                sine_wave(name="y2", direction="negative", frequency=2.3, velocity=75),
+                sine_wave_product(name="y3", wave_name_to_add=["y1", "y2"], color=(200, 150, 0), y_offset=300),
+
+                #long_wave(name="ya", direction="positive", frequency=2, velocity=75, y_offset=450),
+                #long_wave(name="yb", direction="negative", frequency=2.3, velocity=75, y_offset=450),
+                #long_wave_product(name="yc", wave_name_to_add=["ya", "yb"], color=(200, 150, 0), y_offset=600),
+                ]
+            
+            for wave in basic_waves:
+
+                wave.draw = True
+
+                waves_list.append(wave)
+            
+            run = True
+
+        elif cmd.strip().lower().split(" ")[0] == "/d3": 
+
+            basic_waves = [
+                long_wave(name="y1", color=ORANGE, y_offset=300),
+                long_wave(name="y2", color=ORANGE, direction="negative"),
+                sine_wave(name="y1a", y_offset=300), 
+                sine_wave(name="y2a", direction="negative"),
+
+                sine_wave_product(name="ya", wave_name_to_add=["y1a", "y2a"], y_offset=600),
+                long_wave_product(name="yb", color=ORANGE, wave_name_to_add=["y1", "y2"], y_offset=600),
+                ]
+            
+            for wave in basic_waves:
+
+                wave.draw = True
+
+                waves_list.append(wave)
+            
+            run = True
+
+        elif cmd.strip().lower().split(" ")[0] == "/d3": 
+
+            basic_waves = [
+                sine_wave(name="y1"), 
+                sine_wave(name="y2", direction="negative"),
+
+                sine_wave_product(name="ya", wave_name_to_add=["y1", "y2"], y_offset=600),
+                ]
+            
+            for wave in basic_waves:
+
+                wave.draw = True
+
+                waves_list.append(wave)
+            
+            run = True
 
 
+
+    # Exceptions
+        else:
+
+            print("Command not valid")
+
+# start the commands thread to enable live commands
 constants = setup_cmds()
 
 live_cmd_thread = threading.Thread(target=live_cmds, daemon=True)
@@ -334,9 +380,15 @@ TIME_STEP_FACTOR = constants[3]
 RES = constants[4]
 
 WAVE_RANGE =  WIDTH - 2*(WIDTH / 10)
+Y_RANGE = 50
 
 # for positions of particles along x
 x_pos_particles = np.arange(0, WAVE_RANGE + 1, RES)
+y_noise_map = []
+
+for i in x_pos_particles:
+
+    y_noise_map.append((random.random() - 0.5) * 2 * Y_RANGE)
 
 
 
@@ -348,11 +400,12 @@ class sine_wave():
             ID=0,
             draw=False,
             direction="positive", 
-            wave_lengh=WAVE_RANGE / 8, 
-            frequency=0.5, 
-            amplitude=20,
+            velocity=WAVE_SPEED,
+            wave_lengh=340,
+            frequency=1.0625, 
+            amplitude=40,
             delta=np.pi / 2,
-            color=(255, 0, 0),
+            color=RED,
             particle_size=2,
             y_offset=100,
             ):
@@ -361,9 +414,12 @@ class sine_wave():
         self.ID = ID
         self.draw = draw
 
-        self.direction = direction
-        self.wave_len = wave_lengh
         self.freq = frequency
+
+        self.wave_lengh = velocity / self.freq
+        self.velocity = velocity
+
+        self.direction = direction
         self.A = amplitude
         self.delta = delta
 
@@ -379,7 +435,7 @@ class sine_wave():
 
         # calculate w: angular frequency, k: wavenumber
         w = 2*np.pi * self.freq
-        k = w / (self.wave_len * self.freq)
+        k = w / (self.velocity)
         
         if self.direction == "positive":
             return self.A * np.cos(k * x - w * t + self.delta)
@@ -399,6 +455,75 @@ class sine_wave():
     
 
 
+class long_wave():
+        
+    def __init__(
+            self, 
+            name,
+            ID=2,
+            draw=False,
+            direction="positive", 
+            velocity=WAVE_SPEED,
+            wave_lengh=340,
+            frequency=1.0625, 
+            amplitude=40,
+            delta=np.pi / 2,
+            color=RED,
+            particle_size=2,
+            y_offset=100,
+            y_range=75,
+            ):
+        
+        self.name = name
+        self.ID = ID
+        self.draw = draw
+
+        self.freq = frequency
+
+        self.wave_lengh = velocity / self.freq
+        self.velocity = velocity
+
+        self.direction = direction
+        self.A = amplitude
+        self.delta = delta
+
+        self.color = color
+        self.particle_size = particle_size
+        self.y_offset = y_offset
+        self.y_range = y_range
+
+# functions for long waves
+    def x_long(self, x, t):
+
+        # calculate w: angular frequency, k: wavenumber
+        w = 2*np.pi * self.freq
+        k = w / (self.velocity)
+        
+        if self.direction == "positive":
+            return x + self.A * np.cos(w * (t - x / self.velocity) ) + WIDTH / 10
+        
+        if self.direction == "negative":
+            return x + self.A * np.cos(w * (t + x / self.velocity) ) + WIDTH / 10
+
+    def y_long(self, i):
+        return y_noise_map[int(i / RES)]
+        
+    def calc_long_wave(self, t, x_list=x_pos_particles):
+
+        pos_array = []
+
+        for i in x_list:
+
+            x = self.x_long(i, t)
+            y = self.y_long(i)
+
+            #pos_array.append([self.x_long(i, t), y])
+            pos_array.append([x, y])
+
+        return (pos_array, self.color, self.particle_size, self.y_offset)
+
+
+
 class sine_wave_product():
 
     def __init__(
@@ -407,7 +532,7 @@ class sine_wave_product():
             wave_name_to_add,
             ID=1,
             draw=False,
-            color=(255, 0, 0),
+            color=RED,
             particle_size=2,
             y_offset=100,
             ):
@@ -428,24 +553,74 @@ class sine_wave_product():
 
         waves_to_add = []
 
-        for wave2 in wave_list:
+        for wave in wave_list:
 
-            if wave2.name in set(self.wave_name_to_add):
+            if wave.name in set(self.wave_name_to_add):
 
-                waves_to_add.append(wave2)
+                waves_to_add.append(wave)
 
-        for wave3 in waves_to_add:
+        for wave in waves_to_add:
 
-            wave3 = wave3.calc_sine_wave(t)
+            wave = wave.calc_sine_wave(t)
 
-            for i in range(len(wave3[0])):
+            for i in range(len(wave[0])):
 
                 pos_array[i][0] = x_pos_particles[i] + WIDTH / 10
-                pos_array[i][1] = pos_array[i][1] + wave3[0][i][1]
+                pos_array[i][1] = pos_array[i][1] + wave[0][i][1]
 
         
         return (pos_array, self.color, self.particle_size, self.y_offset)
         
+
+
+class long_wave_product():
+
+    def __init__(
+            self,
+            name,
+            wave_name_to_add,
+            ID=3,
+            draw=False,
+            color=RED,
+            particle_size=2,
+            y_offset=100,
+            ):
+        
+        self.name = name
+        self.ID = ID
+        self.draw = draw
+
+        self.wave_name_to_add = wave_name_to_add
+
+        self.color = color
+        self.particle_size = particle_size
+        self.y_offset = y_offset
+
+    def calc_wave_product(self, t, wave_list):
+
+        pos_array = np.zeros((len(x_pos_particles), 2), dtype=int)
+
+        waves_to_add = []
+
+        for wave in wave_list:
+
+            if wave.name in set(self.wave_name_to_add):
+
+                waves_to_add.append(wave)
+
+        for wave in waves_to_add:
+
+            wave_data = wave.calc_long_wave(t)
+
+            for i in range(len(wave_data[0])):
+
+                pos_array[i][0] = pos_array[i][0] + wave_data[0][i][0] / len(waves_to_add)
+                pos_array[i][1] = y_noise_map[int(i)]
+
+        
+        return (pos_array, self.color, self.particle_size, self.y_offset)
+        
+
 
 
 class axis_for_wave():
@@ -456,13 +631,15 @@ class axis_for_wave():
             color=(155, 155, 155),
             start_pos_x=WIDTH / 10,
             end_pos_x=WIDTH - WIDTH / 10,
-            y_offset=100
+            y_offset=100,
+            width=4
             ):
         
         self.name = name
         self.draw = draw
 
         self.color = color
+        self.width = width
 
         self.start_pos = (start_pos_x, y_offset)
         self.end_pos = (end_pos_x, y_offset)
@@ -494,7 +671,8 @@ class draw_pygame():
                         screen, 
                         color=ax.color,
                         start_pos=ax.start_pos,
-                        end_pos=ax.end_pos
+                        end_pos=ax.end_pos,
+                        width=ax.width
                         )
 
 
@@ -539,6 +717,12 @@ while running:
                 visulalisation.draw_particles(wave.calc_sine_wave(t))
 
             if wave.ID == 1:
+                visulalisation.draw_particles(wave.calc_wave_product(t, waves_list))
+
+            if wave.ID == 2:
+                visulalisation.draw_particles(wave.calc_long_wave(t))
+
+            if wave.ID == 3:
                 visulalisation.draw_particles(wave.calc_wave_product(t, waves_list))
 
         
