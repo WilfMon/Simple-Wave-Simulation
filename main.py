@@ -28,6 +28,13 @@ start = False
 run = False
 
 
+print("""
+      
+      -- How to use --
+      /help for a list of commands
+      
+      """)
+
 
 def setup_cmds():
 
@@ -77,9 +84,13 @@ def live_cmds():
                 
                 Clear All Waves
                 /cls
+                
+                Version
+                /version
+                
                   
                 Create Wave:
-                /w 'name' 'ID' 'direction' 'wave_lengh' 'frequency' 'amplitude' 'delta'
+                /w 'name' 'ID' 'direction' 'wave_length' 'frequency' 'amplitude' 'delta'
                 
                 Draw Wave:
                 /w-d 'name' 'color (RGB)' 'particle_size' 'y offset'
@@ -153,6 +164,14 @@ def live_cmds():
             for i in range(len(waves_list)):
                 
                 waves_list.pop()
+
+    # Version
+        elif cmd.strip().lower() == "/version":
+            
+            with open(f"data/info.json", "r") as f:
+                info = json.load(f)
+                
+            print(f"Version: {info[0]["version"]}")
 
 
 # Wave creation and manipulation
@@ -258,11 +277,11 @@ def live_cmds():
                         
                     if attribute == "velocity":
                         wave.velocity = float(new_value)
-                        wave.update_wave_lengh()
+                        wave.update_wave_length()
                         
                     if attribute == "frequency":
                         wave.frequency = float(new_value)
-                        wave.update_wave_lengh()
+                        wave.update_wave_length()
                                                 
                         print("worked")
                         
@@ -283,7 +302,7 @@ def live_cmds():
                         
                     if attribute == "y_offset":
                         wave.y_offset = float(new_value)
-                        axis_list[wave].y_offset = wave.y_offset
+                        #axis_list[wave].y_offset = wave.y_offset
                         
     # Delete Wave
         elif cmd.strip().lower().split(" ")[0] == "/w-delete":
@@ -348,7 +367,7 @@ def live_cmds():
                     print(f"Velocity: {wave.velocity}")
                     print(f"Frequency: {wave.frequency}")
                     print(f"Amplitude: {wave.amplitude}")
-                    print(f"Wave Length: {wave.wave_lengh}")
+                    print(f"Wave Length: {wave.wave_length}")
                     print(f"Delta: {wave.delta}")
                     print(f"Color: {wave.color}")
                     print(f"Particle Size: {wave.particle_size}")
@@ -434,7 +453,7 @@ def unpack_preset(data):
                 ID=wave_dict["ID"],
                 draw=wave_dict["draw"],
                 frequency=wave_dict["frequency"],
-                wave_lengh=wave_dict["wave_lengh"],
+                wave_length=wave_dict["wave_length"],
                 velocity=wave_dict["velocity"],
                 direction=wave_dict["direction"],
                 amplitude=wave_dict["amplitude"],
@@ -461,7 +480,7 @@ def unpack_preset(data):
                 ID=wave_dict["ID"],
                 draw=wave_dict["draw"],
                 frequency=wave_dict["frequency"],
-                wave_lengh=wave_dict["wave_lengh"],
+                wave_length=wave_dict["wave_length"],
                 velocity=wave_dict["velocity"],
                 direction=wave_dict["direction"],
                 amplitude=wave_dict["amplitude"],
@@ -497,7 +516,7 @@ class sine_wave():
             draw=False,
             direction="positive", 
             velocity=WAVE_SPEED,
-            wave_lengh=340,
+            wave_length=340,
             frequency=1.0625, 
             amplitude=50,
             delta=np.pi / 2,
@@ -512,7 +531,7 @@ class sine_wave():
 
         self.frequency = frequency
 
-        self.wave_lengh = velocity / self.frequency
+        self.wave_length = velocity / self.frequency
         self.velocity = velocity
 
         self.direction = direction
@@ -560,7 +579,7 @@ class long_wave():
             draw=False,
             direction="positive", 
             velocity=WAVE_SPEED,
-            wave_lengh=340,
+            wave_length=340,
             frequency=1.0625, 
             amplitude=35,
             delta=np.pi / 2,
@@ -576,7 +595,7 @@ class long_wave():
 
         self.frequency = frequency
 
-        self.wave_lengh = velocity / self.frequency
+        self.wave_length = velocity / self.frequency
         self.velocity = velocity
 
         self.direction = direction
@@ -618,8 +637,8 @@ class long_wave():
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
-    def update_wave_lengh(self):
-        self.wave_lengh = self.velocity / self.frequency
+    def update_wave_length(self):
+        self.wave_length = self.velocity / self.frequency
 
 
 
@@ -745,22 +764,32 @@ class axis_for_wave():
 
 
 
+# Class and functions for drawing
 class draw_pygame():
     def __init__(self):
         pass
 
-    def draw_particles(self, *waves):
+    def draw_particles(self, *waves, high_x=None):
 
         for wave in waves:
 
             for i in range(len(wave[0])):
-
+                    
                 pg.draw.circle(
-                    screen, 
-                    wave[1],
-                    (wave[0][i][0], wave[0][i][1] + wave[3]), # position of particle
-                    wave[2]
-                    )
+                        screen, 
+                        wave[1],
+                        (wave[0][i][0], wave[0][i][1] + wave[3]), # position of particle
+                        wave[2]
+                        )
+                
+                if i == high_x:
+
+                    pg.draw.circle(
+                        screen, 
+                        BABY_BLUE,
+                        (wave[0][i][0], wave[0][i][1] + wave[3]), # position of particle
+                        wave[2] * 2
+                        )
                 
     def draw_axis(self, *axis):
 
@@ -774,7 +803,28 @@ class draw_pygame():
                         width=ax.width
                         )
 
+def draw_all(waves_list):
+    
+    for wave in waves_list:
 
+        if wave.draw:
+
+            visulalisation = draw_pygame()
+
+            if wave.ID == 0:
+                visulalisation.draw_particles(wave.calc_sine_wave(t))
+
+            if wave.ID == 1:
+                visulalisation.draw_particles(wave.calc_wave_product(t, waves_list))
+
+            if wave.ID == 2:
+                visulalisation.draw_particles(wave.calc_long_wave(t), high_x=(int(len(x_pos_particles) / 2)))
+
+            if wave.ID == 3:
+                visulalisation.draw_particles(wave.calc_wave_product(t, waves_list), high_x=(int(len(x_pos_particles) / 2)))
+
+
+# Logic for GUI
 while not start:
     time.sleep(20 / 1000)
     
@@ -804,32 +854,7 @@ while running:
     screen.fill((0, 0, 0))
 
 
-
-    for wave in waves_list:
-
-        if wave.draw:
-
-            visulalisation = draw_pygame()
-
-            if wave.ID == 0:
-                visulalisation.draw_particles(wave.calc_sine_wave(t))
-
-            if wave.ID == 1:
-                visulalisation.draw_particles(wave.calc_wave_product(t, waves_list))
-
-            if wave.ID == 2:
-                visulalisation.draw_particles(wave.calc_long_wave(t))
-
-            if wave.ID == 3:
-                visulalisation.draw_particles(wave.calc_wave_product(t, waves_list))
-
-        
-    for axis in axis_list:
-
-        if axis.draw:
-        
-            visulalisation.draw_axis(axis)
-
+    draw_all(waves_list)
     
 
     # Get the current FPS
