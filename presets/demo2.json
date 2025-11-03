@@ -1,0 +1,54 @@
+[
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "frequency": 2,
+        "wave_lengh": 37.5,
+        "velocity": 75,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 100
+    },
+    {
+        "name": "y2",
+        "ID": 0,
+        "draw": true,
+        "frequency": 2.3,
+        "wave_lengh": 32.608695652173914,
+        "velocity": 75,
+        "direction": "negative",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 100
+    },
+    {
+        "name": "y3",
+        "ID": 1,
+        "draw": true,
+        "wave_name_to_add": [
+            "y1",
+            "y2"
+        ],
+        "color": [
+            200,
+            150,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 300
+    }
+]

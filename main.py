@@ -1,6 +1,6 @@
 import numpy as np
 import pygame as pg
-import sys, threading, time, random
+import sys, threading, time, random, json
 
 ORANGE = (200, 150, 0)
 RED = (255, 0, 0)
@@ -68,6 +68,15 @@ def live_cmds():
                   
                 Start the Simulation:
                 /start
+                
+                Load Preset
+                /load 'preset name'
+                
+                Save Preset
+                /save 'preset name'
+                
+                Clear All Waves
+                /cls
                   
                 Create Wave:
                 /w 'name' 'ID' 'direction' 'wave_lengh' 'frequency' 'amplitude' 'delta'
@@ -95,16 +104,58 @@ def live_cmds():
                   
                 Draw Axis:
                 /a-d 'name'
-                
-                Demos:
-                /d(1, 2, 3, ...)
+            
                 """)
 
+# Program Commands
     # Start Simulation
         elif cmd.strip().lower().split(" ")[0] == "/start":
             global run
             run = True
+            
+    # Save Preset
+        elif cmd.strip().lower().split(" ")[0] == "/save":
+            
+            name = cmd.split(" ")[1]
+            
+            waves_list_packed = []
+            
+            for wave in waves_list:
+                
+                waves_list_packed.append(wave.__dict__)
+            
+            with open(f"presets/{name}.json", "w") as f:
+                json.dump(waves_list_packed, f, indent=4)
+                
+    # Load Preset
+        elif cmd.strip().lower().split(" ")[0] == "/load":
+            
+            name = cmd.split(" ")[1]
+            
+            
+            for i in range(len(waves_list)):
+                    
+                waves_list.pop()
+            
+            
+            with open(f"presets/{name}.json", "r") as f:
+                waves_list_packed = json.load(f)
+                
+            waves_to_add = unpack_preset(waves_list_packed)
+            
+            for wave in waves_to_add:
+                
+                waves_list.append(wave)
 
+    # Clear All Waves
+        elif cmd.strip().lower() == "/cls":
+            
+            for i in range(len(waves_list)):
+                
+                waves_list.pop()
+
+
+# Wave creation and manipulation
     # Create Wave
         elif cmd.strip().lower().split(" ")[0] == "/w":
 
@@ -279,6 +330,7 @@ def live_cmds():
         elif cmd.strip().lower().split(" ")[0] == "/w-list":
             
             print("Existing waves")
+            
             for wave in waves_list:
                 
                 print(f"{wave.name} - drawn: {wave.draw}")
@@ -336,65 +388,6 @@ def live_cmds():
             
             run = True
 
-        elif cmd.strip().lower().split(" ")[0] == "/d2":
-
-            basic_waves = [
-                sine_wave(name="y1", direction="positive", frequency=2, velocity=75),
-                sine_wave(name="y2", direction="negative", frequency=2.3, velocity=75),
-                sine_wave_product(name="y3", wave_name_to_add=["y1", "y2"], color=(200, 150, 0), y_offset=300),
-
-                #long_wave(name="ya", direction="positive", frequency=2, velocity=75, y_offset=450),
-                #long_wave(name="yb", direction="negative", frequency=2.3, velocity=75, y_offset=450),
-                #long_wave_product(name="yc", wave_name_to_add=["ya", "yb"], color=(200, 150, 0), y_offset=600),
-                ]
-            
-            for wave in basic_waves:
-
-                wave.draw = True
-
-                waves_list.append(wave)
-            
-            run = True
-
-        elif cmd.strip().lower().split(" ")[0] == "/d3": 
-
-            basic_waves = [
-                long_wave(name="y1", color=ORANGE, y_offset=300),
-                long_wave(name="y2", color=ORANGE, direction="negative"),
-                sine_wave(name="y1a", y_offset=300), 
-                sine_wave(name="y2a", direction="negative"),
-
-                sine_wave_product(name="ya", wave_name_to_add=["y1a", "y2a"], y_offset=600),
-                long_wave_product(name="yb", color=ORANGE, wave_name_to_add=["y1", "y2"], y_offset=600),
-                ]
-            
-            for wave in basic_waves:
-
-                wave.draw = True
-
-                waves_list.append(wave)
-            
-            run = True
-
-        elif cmd.strip().lower().split(" ")[0] == "/d4": 
-
-            basic_waves = [
-                sine_wave(name="y1"), 
-                sine_wave(name="y2", direction="negative"),
-
-                sine_wave_product(name="ya", wave_name_to_add=["y1", "y2"], y_offset=600),
-                ]
-            
-            for wave in basic_waves:
-
-                wave.draw = True
-
-                waves_list.append(wave)
-            
-            run = True
-
-
-
     # Exceptions
         else:
 
@@ -426,6 +419,72 @@ y_noise_map = []
 for i in x_pos_particles:
 
     y_noise_map.append((random.random() - 0.5) * 2 * Y_RANGE)
+
+
+
+def unpack_preset(data):
+    
+    waves = []
+    
+    for wave_dict in data:
+        
+        if wave_dict["ID"] == 0:
+            wave_obj = sine_wave(
+                name=wave_dict["name"],
+                ID=wave_dict["ID"],
+                draw=wave_dict["draw"],
+                frequency=wave_dict["frequency"],
+                wave_lengh=wave_dict["wave_lengh"],
+                velocity=wave_dict["velocity"],
+                direction=wave_dict["direction"],
+                amplitude=wave_dict["amplitude"],
+                delta=wave_dict["delta"],
+                color=wave_dict["color"],
+                particle_size=wave_dict["particle_size"],
+                y_offset=wave_dict["y_offset"]
+            )
+            
+        elif wave_dict["ID"] == 1:
+            wave_obj = sine_wave_product(
+                name=wave_dict["name"],
+                ID=wave_dict["ID"],
+                draw=wave_dict["draw"],
+                wave_name_to_add=wave_dict["wave_name_to_add"],
+                color=wave_dict["color"],
+                particle_size=wave_dict["particle_size"],
+                y_offset=wave_dict["y_offset"]
+            )
+            
+        elif wave_dict["ID"] == 2:
+            wave_obj = long_wave(
+                name=wave_dict["name"],
+                ID=wave_dict["ID"],
+                draw=wave_dict["draw"],
+                frequency=wave_dict["frequency"],
+                wave_lengh=wave_dict["wave_lengh"],
+                velocity=wave_dict["velocity"],
+                direction=wave_dict["direction"],
+                amplitude=wave_dict["amplitude"],
+                delta=wave_dict["delta"],
+                color=wave_dict["color"],
+                particle_size=wave_dict["particle_size"],
+                y_offset=wave_dict["y_offset"]
+            )
+            
+        elif wave_dict["ID"] == 3:
+            wave_obj = long_wave_product(
+                name=wave_dict["name"],
+                ID=wave_dict["ID"],
+                draw=wave_dict["draw"],
+                wave_name_to_add=wave_dict["wave_name_to_add"],
+                color=wave_dict["color"],
+                particle_size=wave_dict["particle_size"],
+                y_offset=wave_dict["y_offset"]
+            )
+            
+        waves.append(wave_obj)
+        
+    return waves
 
 
 
@@ -714,7 +773,6 @@ class draw_pygame():
                         end_pos=ax.end_pos,
                         width=ax.width
                         )
-
 
 
 while not start:
