@@ -2,8 +2,6 @@ import numpy as np
 import pygame as pg
 import sys, threading, time, random
 
-
-
 ORANGE = (200, 150, 0)
 RED = (255, 0, 0)
 BABY_BLUE = (0, 255, 255)
@@ -66,7 +64,7 @@ def live_cmds():
                 -- List of Commands --
                 
                 - Use _ if you want to keep the default value
-                - ID, 0 = sine wave, 2 = longitudinal wave
+                - ID, sine = sine wave, long = longitudinal wave
                   
                 Start the Simulation:
                 /start
@@ -111,20 +109,15 @@ def live_cmds():
         elif cmd.strip().lower().split(" ")[0] == "/w":
 
             name = cmd.split(" ")[1]
+            ID = cmd.split(" ")[2]
+
+            if ID == "sine":
+                wave = sine_wave(name=name)
+
+            if ID == "long":
+                wave = long_wave(name=name)
 
             axis = axis_for_wave(name=name)
-
-            try:
-                if cmd.split(" ")[2] != "_":
-                    if cmd.split(" ")[2] == 0:
-                        
-                        wave = sine_wave(name=name)
-                        
-                    if cmd.split(" ")[2] == 2:
-                        
-                        wave = long_wave(name=name)
-                        
-            except: pass
 
             try:
                 if cmd.split(" ")[3] != "_":
@@ -141,7 +134,7 @@ def live_cmds():
             try:
                 if cmd.split(" ")[5] != "_":
                     frequency = float(cmd.split(" ")[5])
-                    wave.freq = frequency
+                    wave.frequency = frequency
             except: pass
                 
             try:
@@ -214,9 +207,11 @@ def live_cmds():
                         
                     if attribute == "velocity":
                         wave.velocity = float(new_value)
+                        wave.update_wave_lengh()
                         
                     if attribute == "frequency":
                         wave.frequency = float(new_value)
+                        wave.update_wave_lengh()
                                                 
                         print("worked")
                         
@@ -301,6 +296,7 @@ def live_cmds():
                     print(f"Velocity: {wave.velocity}")
                     print(f"Frequency: {wave.frequency}")
                     print(f"Amplitude: {wave.amplitude}")
+                    print(f"Wave Length: {wave.wave_lengh}")
                     print(f"Delta: {wave.delta}")
                     print(f"Color: {wave.color}")
                     print(f"Particle Size: {wave.particle_size}")
@@ -507,7 +503,7 @@ class long_wave():
             velocity=WAVE_SPEED,
             wave_lengh=340,
             frequency=1.0625, 
-            amplitude=40,
+            amplitude=35,
             delta=np.pi / 2,
             color=RED,
             particle_size=2,
@@ -519,13 +515,13 @@ class long_wave():
         self.ID = ID
         self.draw = draw
 
-        self.freq = frequency
+        self.frequency = frequency
 
-        self.wave_lengh = velocity / self.freq
+        self.wave_lengh = velocity / self.frequency
         self.velocity = velocity
 
         self.direction = direction
-        self.A = amplitude
+        self.amplitude = amplitude
         self.delta = delta
 
         self.color = color
@@ -537,14 +533,14 @@ class long_wave():
     def x_long(self, x, t):
 
         # calculate w: angular frequency, k: wavenumber
-        w = 2*np.pi * self.freq
+        w = 2*np.pi * self.frequency
         k = w / (self.velocity)
         
         if self.direction == "positive":
-            return x + self.A * np.cos(w * (t - x / self.velocity) ) + WIDTH / 10
+            return x + self.amplitude * np.cos(w * (t - x / self.velocity) ) + WIDTH / 10
         
         if self.direction == "negative":
-            return x + self.A * np.cos(w * (t + x / self.velocity) ) + WIDTH / 10
+            return x + self.amplitude * np.cos(w * (t + x / self.velocity) ) + WIDTH / 10
 
     def y_long(self, i):
         return y_noise_map[int(i / RES)]
@@ -562,6 +558,9 @@ class long_wave():
             pos_array.append([x, y])
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
+    
+    def update_wave_lengh(self):
+        self.wave_lengh = self.velocity / self.frequency
 
 
 
