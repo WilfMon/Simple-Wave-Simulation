@@ -3,11 +3,8 @@
 - add axis
 - match up with real life for freq and shit
 
-
-
 - learn how to calculate reflections
 
 - sound waves and hear shit
 
-- MERGE ALL CLASSES INTO ONE
 - FIX THE BEHAVIOUR WITH A DEMO
