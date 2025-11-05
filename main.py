@@ -17,8 +17,8 @@ NOTES
 
 """
 
-PIXEL_FACTOR = 0.5
-WAVE_SPEED = 340
+SCALE_FACTOR = 10 # number of pixels that corresponds to 1m
+WAVE_SPEED = 340 # pixels/sec
 
 
 waves_list = []
@@ -38,8 +38,8 @@ print("""
 
 def setup_cmds():
 
-    #       width height fps time res
-    consts = [1600, 800, 24, 0.5, 2]
+    #        width, height, fps, time, res (particles per pixel)
+    consts = [1600, 800,    24,  1,  10]
 
     setup_cmd = input("Do you want to select settings?(y/n)\n>> ")
 
@@ -375,6 +375,15 @@ def live_cmds():
                     print(f"Color: {wave.color}")
                     print(f"Particle Size: {wave.particle_size}")
                     print(f"Y Offset: {wave.y_offset}")
+                    
+    # Play Wave
+        elif cmd.strip().lower().split(" ")[0] == "/w-play":
+            
+            name = cmd.split(" ")[1]
+            
+            for wave in waves_list:
+            
+                if wave.name == name: play(wave)
 
     # Demos
         elif cmd.strip().lower().split(" ")[0] == "/d1":
@@ -449,13 +458,13 @@ HEIGHT = constants[1]
 FRAME_RATE_GOAL = constants[2]
 TIME_STEP_FACTOR = constants[3]
 
-RES = constants[4]
+RES = int((WIDTH - WIDTH / 5) * constants[4])
 
 WAVE_RANGE =  WIDTH - 2*(WIDTH / 10)
 Y_RANGE = 50
 
 # for positions of particles along x
-x_pos_particles = np.arange(0, WAVE_RANGE + 1, RES)
+x_pos_particles = np.linspace(0, WAVE_RANGE, RES)
 y_noise_map = []
 
 for i in x_pos_particles:
@@ -474,7 +483,7 @@ class wave_object():
             wave_name_to_add=None,
             direction="positive", 
             velocity=WAVE_SPEED,
-            wave_length=340,
+            wave_length=0,
             frequency=1.0625, 
             amplitude=50,
             delta=np.pi / 2,
@@ -501,6 +510,8 @@ class wave_object():
         self.color = color
         self.particle_size = particle_size
         self.y_offset = y_offset
+        
+        self.particle_positions = []
 
     # functions for simple sine waves
     def x_sine(self, i):
@@ -525,6 +536,8 @@ class wave_object():
         for i in x:
 
             pos_array.append([self.x_sine(i), self.y_sine(i, t)])
+            
+        self.particle_positions = pos_array
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -560,6 +573,8 @@ class wave_object():
 
             #pos_array.append([self.x_long(i, t), y])
             pos_array.append([x, y])
+            
+        self.particle_positions = pos_array
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -586,6 +601,8 @@ class wave_object():
                 pos_array[i][0] = x_pos_particles[i] + WIDTH / 10
                 pos_array[i][1] = pos_array[i][1] + wave[0][i][1]
 
+
+        self.particle_positions = pos_array
         
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -613,7 +630,26 @@ class wave_object():
                 pos_array[i][1] = y_noise_map[int(i)]
 
         
+        self.particle_positions = pos_array
+        
         return (pos_array, self.color, self.particle_size, self.y_offset)
+
+
+# Function for producing noise
+def play(wave, sampleRate=44100):
+
+    freq = wave.frequency
+
+    pg.mixer.init(sampleRate,-16,2,512)
+
+    arr = np.array([4096 * np.sin(2.0 * np.pi * freq * x / sampleRate) for x in range(0, sampleRate)]).astype(np.int16)
+    arr2 = np.c_[arr,arr]
+    
+    sound = pg.sndarray.make_sound(arr2)
+
+    sound.play(-1)
+    pg.time.delay(1000)
+    sound.stop()
 
 
 
@@ -687,12 +723,14 @@ while running:
     screen.fill((0, 0, 0))
 
 
+
     draw_all(waves_list)
+    
     
 
     # Get the current FPS
-    fps = int(clock.get_fps())
-    fps_text = font.render(f"FPS: {fps}", True, (255, 255, 255))
+    ups = int(clock.get_fps())
+    fps_text = font.render(f"UPS: {ups}", True, (255, 255, 255))
 
     screen.blit(fps_text, (10, 10))
 
