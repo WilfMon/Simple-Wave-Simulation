@@ -39,7 +39,7 @@ print("""
 def setup_cmds():
 
     #        width, height, fps, time, res (particles per pixel)
-    consts = [1600, 800,    24,  1,  10]
+    consts = [1600, 800,    24,  1,  1]
 
     setup_cmd = input("Do you want to select settings?(y/n)\n>> ")
 
@@ -458,13 +458,14 @@ HEIGHT = constants[1]
 FRAME_RATE_GOAL = constants[2]
 TIME_STEP_FACTOR = constants[3]
 
-RES = int((WIDTH - WIDTH / 5) * constants[4])
+RES = constants[4]
+NUM = int((WIDTH - WIDTH / 5) * constants[4])
 
 WAVE_RANGE =  WIDTH - 2*(WIDTH / 10)
 Y_RANGE = 50
 
 # for positions of particles along x
-x_pos_particles = np.linspace(0, WAVE_RANGE, RES)
+x_pos_particles = np.linspace(0, WAVE_RANGE, NUM)
 y_noise_map = []
 
 for i in x_pos_particles:
@@ -560,15 +561,15 @@ class wave_object():
             return x + self.amplitude * np.cos(w * t + k * x ) + WIDTH / 10
 
     def y_long(self, i):
-        return y_noise_map[int(i / RES)]
+        return y_noise_map[i]
         
     def calc_long_wave(self, t, x_list=x_pos_particles):
 
         pos_array = []
 
-        for i in x_list:
+        for i, x in enumerate(x_list):
 
-            x = self.x_long(i, t)
+            x = self.x_long(x, t)
             y = self.y_long(i)
 
             #pos_array.append([self.x_long(i, t), y])
@@ -659,7 +660,7 @@ def draw_particles(*waves, high_x=None):
     for wave in waves:
 
         for i in range(len(wave[0])):
-                
+            
             pg.draw.circle(
                     screen, 
                     wave[1],
@@ -689,10 +690,10 @@ def draw_all(waves_list):
                 draw_particles(wave.calc_sine_wave_product(t, waves_list))
 
             if wave.ID == 2:
-                draw_particles(wave.calc_long_wave(t), high_x=(int(len(x_pos_particles) / 2)))
+                draw_particles(wave.calc_long_wave(t))
 
             if wave.ID == 3:
-                draw_particles(wave.calc_long_wave_product(t, waves_list), high_x=(int(len(x_pos_particles) / 2)))
+                draw_particles(wave.calc_long_wave_product(t, waves_list))
 
 
 # Logic for GUI
@@ -725,8 +726,8 @@ while running:
 
 
     draw_all(waves_list)
-    
-    
+
+
 
     # Get the current FPS
     ups = int(clock.get_fps())
