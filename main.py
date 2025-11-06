@@ -64,348 +64,347 @@ def live_cmds():
     while True:
         cmd = input(">> ")
 
-        if cmd.strip().lower() == "/help":
-            print("""
-                -- List of Commands --
-                
-                - Use _ if you want to keep the default value
-                - ID, sine = sine wave, long = longitudinal wave
-                  
-                Start the Simulation:
-                /start
-                
-                Load Preset
-                /load 'preset name'
-                
-                Save Preset
-                /save 'preset name'
-                
-                Clear All Waves
-                /cls
-                
-                Version
-                /version
-                
-                  
-                Create Wave:
-                /w 'name' 'ID' 'direction' 'wave_length' 'frequency' 'amplitude' 'delta'
-                
-                Draw Wave:
-                /w-d 'name' 'color (RGB)' 'particle_size' 'y offset'
-                  
-                Update Wave:
-                /w-update 'name' 'attribute' 'new value'
-                
-                Delete Wave: 
-                /w-delete 'name'
-                  
-                Wipe Wave (keep the wave but remove it from the visualisation):
-                /w-wipe 'name'
-                
-                Add Waves:
-                /w-add 'number of waves' 'name new wave' 'ID' 'name wave 1' 'name wave 2' ... 'name wave n'
-                  
-                Show Current Waves:
-                /w-list
-                
-                Show Wave Attributes:
-                /w-attributes 'name'
-            
-                """)
+        try:
 
-# Program Commands
-    # Start Simulation
-        elif cmd.strip().lower().split(" ")[0] == "/start":
-            global run
-            run = True
-            
-    # Save Preset
-        elif cmd.strip().lower().split(" ")[0] == "/save":
-            
-            name = cmd.split(" ")[1]
-            
-            waves_list_packed = []
-            
-            for wave in waves_list:
-                
-                waves_list_packed.append(wave.__dict__)
-            
-            with open(f"presets/{name}.json", "w") as f:
-                json.dump(waves_list_packed, f, indent=4)
-                
-    # Load Preset
-        elif cmd.strip().lower().split(" ")[0] == "/load":
-            
-            name = cmd.split(" ")[1]
-            
-            
-            for i in range(len(waves_list)):
+            if cmd.strip().lower() == "/help":
+                print("""
+                    -- List of Commands --
                     
-                waves_list.pop()
-            
-            
-            with open(f"presets/{name}.json", "r") as f:
-                waves_list_packed = json.load(f)
+                    - Use _ if you want to keep the default value
+                    - ID, sine = sine wave, long = longitudinal wave
+                    
+                    Start the Simulation:
+                    /start
+                    
+                    Load Preset
+                    /load 'preset name'
+                    
+                    Save Preset
+                    /save 'preset name'
+                    
+                    Clear All Waves
+                    /cls
+                    
+                    Version
+                    /version
+                    
+                    
+                    Create Wave:
+                    /w 'name' 'ID' 'direction' 'wave_length' 'frequency' 'amplitude' 'delta'
+                    
+                    Draw Wave:
+                    /w-d 'name' 'color (RGB)' 'particle_size' 'y offset'
+                    
+                    Update Wave:
+                    /w-update 'name' 'attribute' 'new value'
+                    
+                    Delete Wave: 
+                    /w-delete 'name'
+                    
+                    Wipe Wave (keep the wave but remove it from the visualisation):
+                    /w-wipe 'name'
+                    
+                    Add Waves:
+                    /w-add 'number of waves' 'name new wave' 'ID' 'name wave 1' 'name wave 2' ... 'name wave n'
+                    
+                    Show Current Waves:
+                    /w-list
+                    
+                    Show Wave Attributes:
+                    /w-attributes 'name'
                 
-            waves_to_add = unpack_preset(waves_list_packed)
-            
-            for wave in waves_to_add:
+                    """)
+
+    # Program Commands
+        # Start Simulation
+            elif cmd.strip().lower().split(" ")[0] == "/start":
+                global run
+                run = True
+                
+        # Save Preset
+            elif cmd.strip().lower().split(" ")[0] == "/save":
+                
+                name = cmd.split(" ")[1]
+                
+                waves_list_packed = []
+                
+                for wave in waves_list:
+                    
+                    waves_list_packed.append(wave.__dict__)
+                
+                with open(f"presets/{name}.json", "w") as f:
+                    json.dump(waves_list_packed, f, indent=4)
+                    
+        # Load Preset
+            elif cmd.strip().lower().split(" ")[0] == "/load":
+                
+                name = cmd.split(" ")[1]
+                
+                
+                for i in range(len(waves_list)):
+                        
+                    waves_list.pop()
+                
+                
+                with open(f"presets/{name}.json", "r") as f:
+                    waves_list_packed = json.load(f)
+                    
+                waves_to_add = unpack_preset(waves_list_packed)
+                
+                for wave in waves_to_add:
+                    
+                    waves_list.append(wave)
+
+        # Clear All Waves
+            elif cmd.strip().lower() == "/cls":
+                
+                for i in range(len(waves_list)):
+                    
+                    waves_list.pop()
+
+        # Version
+            elif cmd.strip().lower() == "/version":
+                
+                with open(f"data/info.json", "r") as f:
+                    info = json.load(f)
+                    
+                print(f"Version: {info[0]["version"]}")
+
+
+    # Wave creation and manipulation
+        # Create Wave
+            elif cmd.strip().lower().split(" ")[0] == "/w":
+
+                name = cmd.split(" ")[1]
+                ID = cmd.split(" ")[2]
+
+                if ID == "sine":
+                    wave = wave_object(name=name, ID=0)
+
+                if ID == "long":
+                    wave = wave_object(name=name, ID=2)
+
+                try:
+                    if cmd.split(" ")[3] != "_":
+                        direction = cmd.split(" ")[3]
+                        wave.direction = direction
+                except: pass
+
+                try:
+                    if cmd.split(" ")[4] != "_":
+                        velocity = float(cmd.split(" ")[4])
+                        wave.velocity = velocity
+                except: pass
+
+                try:
+                    if cmd.split(" ")[5] != "_":
+                        frequency = float(cmd.split(" ")[5])
+                        wave.frequency = frequency
+                except: pass
+                    
+                try:
+                    if cmd.split(" ")[6] != "_":
+                        amplitude = float(cmd.split(" ")[6])
+                        wave.amplitude = amplitude
+                except: pass    
+                    
+                try:
+                    if cmd.split(" ")[7] != "_":
+                        delta = float(cmd.split(" ")[7])
+                        wave.delta = delta
+                except: pass
                 
                 waves_list.append(wave)
 
-    # Clear All Waves
-        elif cmd.strip().lower() == "/cls":
-            
-            for i in range(len(waves_list)):
+        # Draw Wave
+            elif cmd.strip().lower().split(" ")[0] == "/w-d":
+
+                name = cmd.split(" ")[1]
+
+                for k, wave in enumerate(waves_list):
+                    if wave.name == name:
+
+                        i = 0
+
+                        try:
+                            if cmd.split(" ")[2] != "_":
+                                r = int(cmd.split(" ")[2])
+                                g = int(cmd.split(" ")[3])
+                                b = int(cmd.split(" ")[4])
+                                wave.color = (r, g, b)
+                            else: i = -2
+                        except: pass
+
+                        try:
+                            if cmd.split(" ")[5 + i] != "_":
+                                particle_size = float(cmd.split(" ")[5 + i])
+                                wave.particle_size = particle_size
+                        except: pass
+                        
+                        try:
+                            if cmd.split(" ")[6 + i] != "_":
+                                y_offset = float(cmd.split(" ")[6 + i])
+                                wave.y_offset = y_offset
+
+                                axis_list[k].y_offset = y_offset
+                        except: pass
+
+                        wave.draw = True
+
+        # Update Wave
+            elif cmd.strip().lower().split(" ")[0] == "/w-update":
                 
-                waves_list.pop()
-
-    # Version
-        elif cmd.strip().lower() == "/version":
-            
-            with open(f"data/info.json", "r") as f:
-                info = json.load(f)
+                name = cmd.split(" ")[1]
                 
-            print(f"Version: {info[0]["version"]}")
-
-
-# Wave creation and manipulation
-    # Create Wave
-        elif cmd.strip().lower().split(" ")[0] == "/w":
-
-            name = cmd.split(" ")[1]
-            ID = cmd.split(" ")[2]
-
-            if ID == "sine":
-                wave = wave_object(name=name, ID=0)
-
-            if ID == "long":
-                wave = wave_object(name=name, ID=2)
-
-            try:
-                if cmd.split(" ")[3] != "_":
-                    direction = cmd.split(" ")[3]
-                    wave.direction = direction
-            except: pass
-
-            try:
-                if cmd.split(" ")[4] != "_":
-                    velocity = float(cmd.split(" ")[4])
-                    wave.velocity = velocity
-            except: pass
-
-            try:
-                if cmd.split(" ")[5] != "_":
-                    frequency = float(cmd.split(" ")[5])
-                    wave.frequency = frequency
-            except: pass
+                attribute = cmd.split(" ")[2]
+                new_value = cmd.split(" ")[3]
                 
-            try:
-                if cmd.split(" ")[6] != "_":
-                    amplitude = float(cmd.split(" ")[6])
-                    wave.amplitude = amplitude
-            except: pass    
+                for wave, wave in enumerate(waves_list):
                 
-            try:
-                if cmd.split(" ")[7] != "_":
-                    delta = float(cmd.split(" ")[7])
-                    wave.delta = delta
-            except: pass
-            
-            waves_list.append(wave)
-
-    # Draw Wave
-        elif cmd.strip().lower().split(" ")[0] == "/w-d":
-
-            name = cmd.split(" ")[1]
-
-            for k, wave in enumerate(waves_list):
-                if wave.name == name:
-
-                    i = 0
-
-                    try:
-                        if cmd.split(" ")[2] != "_":
-                            r = int(cmd.split(" ")[2])
-                            g = int(cmd.split(" ")[3])
-                            b = int(cmd.split(" ")[4])
+                    if wave.name == name:
+                
+                        if attribute == "name":
+                            wave.name = new_value
+                        
+                        if attribute == "direction":
+                            wave.direction = new_value
+                            
+                        if attribute == "velocity":
+                            wave.velocity = float(new_value)
+                            wave.update_wave_length()
+                            
+                        if attribute == "frequency":
+                            wave.frequency = float(new_value)
+                            wave.update_wave_length()
+                            
+                        if attribute == "amplitude":
+                            wave.amplitude = float(new_value)
+                            
+                        if attribute == "delta":
+                            wave.delta = float(new_value)
+                            
+                        if attribute == "color":
+                            r = int(cmd.split(" ")[3])
+                            g = int(cmd.split(" ")[4])
+                            b = int(cmd.split(" ")[5])
                             wave.color = (r, g, b)
-                        else: i = -2
-                    except: pass
-
-                    try:
-                        if cmd.split(" ")[5 + i] != "_":
-                            particle_size = float(cmd.split(" ")[5 + i])
-                            wave.particle_size = particle_size
-                    except: pass
+                            
+                        if attribute == "particle_size":
+                            wave.particle_size = int(new_value)
+                            
+                        if attribute == "y_offset":
+                            wave.y_offset = float(new_value)
+                            
+        # Delete Wave
+            elif cmd.strip().lower().split(" ")[0] == "/w-delete":
+                
+                name = cmd.split(" ")[1]
+                
+                for wave in waves_list:
+                
+                    if wave.name == name:
                     
-                    try:
-                        if cmd.split(" ")[6 + i] != "_":
-                            y_offset = float(cmd.split(" ")[6 + i])
-                            wave.y_offset = y_offset
+                        waves_list.remove(wave)
 
-                            axis_list[k].y_offset = y_offset
-                    except: pass
+        # Wipe Wave
+            elif cmd.strip().lower().split(" ")[0] == "/w-wipe":
+                
+                name = cmd.split(" ")[1]
+                
+                for wave in waves_list:
+                
+                    if wave.name == name:
+                    
+                        wave.draw = False
+        
+        # Add Waves
+            elif cmd.strip().lower().split(" ")[0] == "/w-add":
+
+                no = int(cmd.split(" ")[1])
+
+                name_new_wave = cmd.split(" ")[2]
+
+                i = cmd.split(" ")[3]
+
+                if i == "sine": i = 0
+                if i == "long": i = 2
+
+                wave_name_to_add = []
+
+                for wave in range(3, no + 3):
+
+                    name = cmd.split(" ")[wave]
+
+                    wave_name_to_add.append(name)
+
+                wave = wave_object(name=name_new_wave, wave_name_to_add=wave_name_to_add, ID=i)
+
+                waves_list.append(wave)
+                
+        # Show Current Waves
+            elif cmd.strip().lower().split(" ")[0] == "/w-list":
+                
+                print("Existing waves")
+                
+                for wave in waves_list:
+                    
+                    print(f"{wave.name} - drawn: {wave.draw}")
+                    
+        # Show Wave Attributes
+            elif cmd.strip().lower().split(" ")[0] == "/w-attributes":
+                
+                name = cmd.split(" ")[1]
+                
+                for wave in waves_list:
+                
+                    if wave.name == name and (wave.ID == 0 or wave.ID == 2):
+                        
+                        print(f"Direction: {wave.direction}")
+                        print(f"Velocity: {wave.velocity}")
+                        print(f"Frequency: {wave.frequency}")
+                        print(f"Amplitude: {wave.amplitude}")
+                        print(f"Wave Length: {wave.wave_length}")
+                        print(f"Delta: {wave.delta}")
+                        print(f"Color: {wave.color}")
+                        print(f"Particle Size: {wave.particle_size}")
+                        print(f"Y Offset: {wave.y_offset}")
+                        
+                    if wave.name == name and (wave.ID == 1 or wave.ID == 3):
+                        
+                        print(f"Names of Waves Added: {wave.wave_name_to_add}")
+                        print(f"Color: {wave.color}")
+                        print(f"Particle Size: {wave.particle_size}")
+                        print(f"Y Offset: {wave.y_offset}")
+                        
+        # Play Wave
+            elif cmd.strip().lower().split(" ")[0] == "/w-play":
+                
+                name = cmd.split(" ")[1]
+                
+                for wave in waves_list:
+                
+                    if wave.name == name: play(wave)
+
+        # Demos
+            elif cmd.strip().lower().split(" ")[0] == "/d1":
+
+                basic_waves = [
+                    wave_object(name="y1", ID=0), 
+                    wave_object(name="y2", direction="negative", ID=0),
+                    wave_object(name="ya", wave_name_to_add=["y1", "y2"], color=(200, 150, 0), y_offset=300, ID=1)
+                    ]
+                
+                for wave in basic_waves:
 
                     wave.draw = True
 
-    # Update Wave
-        elif cmd.strip().lower().split(" ")[0] == "/w-update":
-            
-            name = cmd.split(" ")[1]
-            
-            attribute = cmd.split(" ")[2]
-            new_value = cmd.split(" ")[3]
-            
-            for wave, wave in enumerate(waves_list):
-            
-                if wave.name == name:
-            
-                    if attribute == "name":
-                        wave.name = new_value
-                    
-                    if attribute == "direction":
-                        wave.direction = new_value
-                        
-                    if attribute == "velocity":
-                        wave.velocity = float(new_value)
-                        wave.update_wave_length()
-                        
-                    if attribute == "frequency":
-                        wave.frequency = float(new_value)
-                        wave.update_wave_length()
-                                                
-                        print("worked")
-                        
-                    if attribute == "amplitude":
-                        wave.amplitude = float(new_value)
-                        
-                    if attribute == "delta":
-                        wave.delta = float(new_value)
-                        
-                    if attribute == "color":
-                        r = int(cmd.split(" ")[3])
-                        g = int(cmd.split(" ")[4])
-                        b = int(cmd.split(" ")[5])
-                        wave.color = (r, g, b)
-                        
-                    if attribute == "particle_size":
-                        wave.particle_size = int(new_value)
-                        
-                    if attribute == "y_offset":
-                        wave.y_offset = float(new_value)
-                        
-    # Delete Wave
-        elif cmd.strip().lower().split(" ")[0] == "/w-delete":
-            
-            name = cmd.split(" ")[1]
-            
-            for wave in waves_list:
-            
-                if wave.name == name:
+                    waves_list.append(wave)
                 
-                    waves_list.remove(wave)
+                run = True
 
-    # Wipe Wave
-        elif cmd.strip().lower().split(" ")[0] == "/w-wipe":
-            
-            name = cmd.split(" ")[1]
-            
-            for wave in waves_list:
-            
-                if wave.name == name:
-                
-                    wave.draw = False
-    
-    # Add Waves
-        elif cmd.strip().lower().split(" ")[0] == "/w-add":
-
-            no = int(cmd.split(" ")[1])
-
-            name_new_wave = cmd.split(" ")[2]
-
-            i = cmd.split(" ")[3]
-
-            if i == "sine": i = 0
-            if i == "long": i = 2
-
-            wave_name_to_add = []
-
-            for wave in range(3, no + 3):
-
-                name = cmd.split(" ")[wave]
-
-                wave_name_to_add.append(name)
-
-            wave = wave_object(name=name_new_wave, wave_name_to_add=wave_name_to_add, ID=i)
-
-            waves_list.append(wave)
-            
-    # Show Current Waves
-        elif cmd.strip().lower().split(" ")[0] == "/w-list":
-            
-            print("Existing waves")
-            
-            for wave in waves_list:
-                
-                print(f"{wave.name} - drawn: {wave.draw}")
-                
-    # Show Wave Attributes
-        elif cmd.strip().lower().split(" ")[0] == "/w-attributes":
-            
-            name = cmd.split(" ")[1]
-            
-            for wave in waves_list:
-            
-                if wave.name == name and (wave.ID == 0 or wave.ID == 2):
-                    
-                    print(f"Direction: {wave.direction}")
-                    print(f"Velocity: {wave.velocity}")
-                    print(f"Frequency: {wave.frequency}")
-                    print(f"Amplitude: {wave.amplitude}")
-                    print(f"Wave Length: {wave.wave_length}")
-                    print(f"Delta: {wave.delta}")
-                    print(f"Color: {wave.color}")
-                    print(f"Particle Size: {wave.particle_size}")
-                    print(f"Y Offset: {wave.y_offset}")
-                    
-                if wave.name == name and (wave.ID == 1 or wave.ID == 3):
-                    
-                    print(f"Names of Waves Added: {wave.wave_name_to_add}")
-                    print(f"Color: {wave.color}")
-                    print(f"Particle Size: {wave.particle_size}")
-                    print(f"Y Offset: {wave.y_offset}")
-                    
-    # Play Wave
-        elif cmd.strip().lower().split(" ")[0] == "/w-play":
-            
-            name = cmd.split(" ")[1]
-            
-            for wave in waves_list:
-            
-                if wave.name == name: play(wave)
-
-    # Demos
-        elif cmd.strip().lower().split(" ")[0] == "/d1":
-
-            basic_waves = [
-                wave_object(name="y1", ID=0), 
-                wave_object(name="y2", direction="negative", ID=0),
-                wave_object(name="ya", wave_name_to_add=["y1", "y2"], color=(200, 150, 0), y_offset=300, ID=1)
-                ]
-            
-            for wave in basic_waves:
-
-                wave.draw = True
-
-                waves_list.append(wave)
-            
-            run = True
-
-    # Exceptions
-        else:
-
-            print("Command not valid")
+        except Exception as e:
+            print("Command not Valid")
+            print(e)
 
 def unpack_preset(data):
     
