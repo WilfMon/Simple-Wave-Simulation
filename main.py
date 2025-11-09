@@ -510,8 +510,6 @@ class wave_object():
         self.color = color
         self.particle_size = particle_size
         self.y_offset = y_offset
-        
-        self.particle_positions = []
 
     # functions for simple sine waves
     def x_sine(self, i):
@@ -536,8 +534,6 @@ class wave_object():
         for i in x:
 
             pos_array.append([self.x_sine(i), self.y_sine(i, t)])
-            
-        self.particle_positions = pos_array
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -573,9 +569,7 @@ class wave_object():
 
             #pos_array.append([self.x_long(i, t), y])
             pos_array.append([x, y])
-            
-        self.particle_positions = pos_array
-
+        
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
 
@@ -600,9 +594,6 @@ class wave_object():
 
                 pos_array[i][0] = x_pos_particles[i] + WIDTH / 10
                 pos_array[i][1] = pos_array[i][1] + wave[0][i][1]
-
-
-        self.particle_positions = pos_array
         
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -628,9 +619,6 @@ class wave_object():
 
                 pos_array[i][0] = pos_array[i][0] + wave_data[0][i][0] / len(waves_to_add)
                 pos_array[i][1] = y_noise_map[int(i)]
-
-        
-        self.particle_positions = pos_array
         
         return (pos_array, self.color, self.particle_size, self.y_offset)
 
