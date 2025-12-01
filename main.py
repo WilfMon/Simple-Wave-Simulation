@@ -22,7 +22,6 @@ WAVE_SPEED = 340 # pixels/sec
 
 
 waves_list = []
-axis_list = []
 
 start = False
 run = False
@@ -36,10 +35,11 @@ print("""
       """)
 
 
+# handles setup commands
 def setup_cmds():
 
     #        width, height, fps, time, res (particles per pixel)
-    consts = [1600, 800,    24,  1,  1]
+    consts = [1600, 800,    60,  1,  1]
 
     setup_cmd = input("Do you want to select settings?(y/n)\n>> ")
 
@@ -59,6 +59,7 @@ def setup_cmds():
 
     return consts
 
+# handles live commands
 def live_cmds():
     
     while True:
@@ -129,8 +130,11 @@ def live_cmds():
                 waves_list_packed = []
                 
                 for wave in waves_list:
+
+                    x = wave.__dict__.copy()
+                    x.pop("noise_map", None)
                     
-                    waves_list_packed.append(wave.__dict__)
+                    waves_list_packed.append(x)
                 
                 with open(f"presets/{name}.json", "w") as f:
                     json.dump(waves_list_packed, f, indent=4)
@@ -245,8 +249,6 @@ def live_cmds():
                             if cmd.split(" ")[6 + i] != "_":
                                 y_offset = float(cmd.split(" ")[6 + i])
                                 wave.y_offset = y_offset
-
-                                axis_list[k].y_offset = y_offset
                         except: pass
 
                         wave.draw = True
@@ -406,6 +408,7 @@ def live_cmds():
             print("Command not Valid")
             print(e)
 
+# unpacks the .json for wave presets
 def unpack_preset(data):
     
     waves = []
@@ -414,43 +417,61 @@ def unpack_preset(data):
         
         if wave_dict["ID"] == 0 or wave_dict["ID"] == 2:
             wave_obj = wave_object(
+                # basic information
                 name=wave_dict["name"],
                 ID=wave_dict["ID"],
+
+                # drawing properties
                 draw=wave_dict["draw"],
+                particle_size=wave_dict["particle_size"],
+                y_offset=wave_dict["y_offset"],
+                color=wave_dict["color"],
+
+                # wave properties for standard waves
                 frequency=wave_dict["frequency"],
                 wave_length=wave_dict["wave_length"],
                 velocity=wave_dict["velocity"],
                 direction=wave_dict["direction"],
                 amplitude=wave_dict["amplitude"],
                 delta=wave_dict["delta"],
-                color=wave_dict["color"],
-                particle_size=wave_dict["particle_size"],
-                y_offset=wave_dict["y_offset"],
+
+                # extras
+                noisy=wave_dict["noisy"],
             )
             
         elif wave_dict["ID"] == 1 or wave_dict["ID"] == 3:
             wave_obj = wave_object(
+                # basic information
                 name=wave_dict["name"],
                 ID=wave_dict["ID"],
+
+                # drawing properties
                 draw=wave_dict["draw"],
-                wave_name_to_add=wave_dict["wave_name_to_add"],
-                color=wave_dict["color"],
                 particle_size=wave_dict["particle_size"],
-                y_offset=wave_dict["y_offset"]
+                y_offset=wave_dict["y_offset"],
+                color=wave_dict["color"],
+                
+                # wave properties for wave addition
+                wave_name_to_add=wave_dict["wave_name_to_add"],
+
+                # extras
+                noisy=wave_dict["noisy"],
             )
             
         waves.append(wave_obj)
         
     return waves
 
-# start the commands thread to enable live commands
+# generate constants
 constants = setup_cmds()
 
+# start the commands thread to enable live commands
 live_cmd_thread = threading.Thread(target=live_cmds, daemon=True)
 live_cmd_thread.start()
 
 
 
+# Global constants
 WIDTH = constants[0]
 HEIGHT = constants[1]
 
@@ -465,11 +486,30 @@ Y_RANGE = 50
 
 # for positions of particles along x
 x_pos_particles = np.linspace(0, WAVE_RANGE, NUM)
+
+# create a noise map for longitudinal waves
 y_noise_map = []
 
 for i in x_pos_particles:
 
     y_noise_map.append((random.random() - 0.5) * 2 * Y_RANGE)
+
+# class for creating a guass noise map
+class noise_map():
+    def __init__(self, tick=0):
+
+        self.tick = tick
+        self.noise_map = self.gauss_nosie_map()
+
+    def gauss_nosie_map(self, size=20):
+
+        noise_map = []
+
+        for i in x_pos_particles:
+
+            noise_map.append(random.gauss(0, 1) * size)
+
+        return noise_map
 
 
 # Main class containing the wave object
@@ -477,41 +517,52 @@ class wave_object():
         
     def __init__(
             self, 
+
+            # basic wave information
             name,
             ID=0,
+
+            # drawing properties
             draw=False,
-            wave_name_to_add=None,
+            particle_size=2,
+            y_offset=100,
+            color=RED,
+
+            # wave properties for standard waves
             direction="positive", 
             velocity=WAVE_SPEED,
             wave_length=0,
             frequency=1.0625, 
             amplitude=50,
             delta=np.pi / 2,
-            color=RED,
-            particle_size=2,
-            y_offset=100,
+
+            # wave properties for wave addition
+            wave_name_to_add=None,
+
+            # extras
+            noisy=False,
             ):
         
         self.name = name
         self.ID = ID
-        self.draw = draw
 
-        self.wave_name_to_add = wave_name_to_add
+        self.draw = draw
+        self.color = color
+        self.particle_size = particle_size
+        self.y_offset = y_offset
 
         self.frequency = frequency
-
         self.wave_length = velocity / self.frequency
         self.velocity = velocity
-
         self.direction = direction
         self.amplitude = amplitude
         self.delta = delta
 
-        self.color = color
-        self.particle_size = particle_size
-        self.y_offset = y_offset
-        
-        self.particle_positions = []
+        self.wave_name_to_add = wave_name_to_add
+
+        self.noisy = noisy
+
+        self.noise_class = noise_map()
 
     # functions for simple sine waves
     def x_sine(self, i):
@@ -533,11 +584,23 @@ class wave_object():
 
         pos_array = []
 
-        for i in x:
+        for k, i in enumerate(x):
 
-            pos_array.append([self.x_sine(i), self.y_sine(i, t)])
-            
-        self.particle_positions = pos_array
+            if self.noisy:
+                pos_array.append([self.x_sine(i), self.y_sine(i, t) + self.noise_class.noise_map[k - self.noise_class.tick]])
+
+            else:
+                pos_array.append([self.x_sine(i), self.y_sine(i, t)])
+
+        # tick logic for noise
+        if self.noise_class.tick == len(x):
+            self.noise_class.tick = 0
+
+        else:
+            self.noise_class.tick += 1
+
+        #print(self.noise_class.tick)
+        #print(len(x))
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -573,8 +636,6 @@ class wave_object():
 
             #pos_array.append([self.x_long(i, t), y])
             pos_array.append([x, y])
-            
-        self.particle_positions = pos_array
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -600,9 +661,6 @@ class wave_object():
 
                 pos_array[i][0] = x_pos_particles[i] + WIDTH / 10
                 pos_array[i][1] = pos_array[i][1] + wave[0][i][1]
-
-
-        self.particle_positions = pos_array
         
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
@@ -628,9 +686,6 @@ class wave_object():
 
                 pos_array[i][0] = pos_array[i][0] + wave_data[0][i][0] / len(waves_to_add)
                 pos_array[i][1] = y_noise_map[int(i)]
-
-        
-        self.particle_positions = pos_array
         
         return (pos_array, self.color, self.particle_size, self.y_offset)
 
@@ -676,6 +731,26 @@ def draw_particles(*waves, high_x=None):
                     wave[2] * 2
                     )
 
+def draw_line(*pos_array):
+
+    points = []
+
+    # create an array of points on the wave
+    for pos in pos_array:
+
+        for i in range(len(pos[0])):
+
+            points.append([pos[0][i][0], pos[0][i][1] + pos[3]])
+
+    # draw the waves
+    pg.draw.lines(
+        screen,
+        pos[1],
+        False,
+        points,
+        pos[2]
+    )
+
 def draw_all(waves_list):
     
     for wave in waves_list:
@@ -683,10 +758,10 @@ def draw_all(waves_list):
         if wave.draw:
 
             if wave.ID == 0:
-                draw_particles(wave.calc_sine_wave(t))
+                draw_line(wave.calc_sine_wave(t))
 
             if wave.ID == 1:
-                draw_particles(wave.calc_sine_wave_product(t, waves_list))
+                draw_line(wave.calc_sine_wave_product(t, waves_list))
 
             if wave.ID == 2:
                 draw_particles(wave.calc_long_wave(t))
