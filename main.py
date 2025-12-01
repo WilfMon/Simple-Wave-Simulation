@@ -558,17 +558,11 @@ class wave_object():
         self.amplitude = amplitude
         self.delta = delta
 
-<<<<<<< HEAD
         self.wave_name_to_add = wave_name_to_add
 
         self.noisy = noisy
 
         self.noise_class = noise_map()
-=======
-        self.color = color
-        self.particle_size = particle_size
-        self.y_offset = y_offset
->>>>>>> 2e4f29045a3f3e76fd4adbded93c67cc31946b71
 
     # functions for simple sine waves
     def x_sine(self, i):
@@ -592,7 +586,6 @@ class wave_object():
 
         for k, i in enumerate(x):
 
-<<<<<<< HEAD
             if self.noisy:
                 pos_array.append([self.x_sine(i), self.y_sine(i, t) + self.noise_class.noise_map[k - self.noise_class.tick]])
 
@@ -608,15 +601,9 @@ class wave_object():
 
         #print(self.noise_class.tick)
         #print(len(x))
-=======
-            pos_array.append([self.x_sine(i), self.y_sine(i, t)])
->>>>>>> 2e4f29045a3f3e76fd4adbded93c67cc31946b71
 
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
-
-    def update_wave_length(self):
-        pass
 
 
     # functions for long waves
@@ -646,11 +633,7 @@ class wave_object():
 
             #pos_array.append([self.x_long(i, t), y])
             pos_array.append([x, y])
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> 2e4f29045a3f3e76fd4adbded93c67cc31946b71
         return (pos_array, self.color, self.particle_size, self.y_offset)
     
 
