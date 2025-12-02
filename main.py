@@ -39,7 +39,7 @@ print("""
 def setup_cmds():
 
     #        width, height, fps, time, res (particles per pixel)
-    consts = [1600, 800,    60,  1,  1]
+    consts = [1600, 800,    60,    1,     1]
 
     setup_cmd = input("Do you want to select settings?(y/n)\n>> ")
 
