@@ -16,7 +16,8 @@
         ],
         "particle_size": 2,
         "y_offset": 300,
-        "y_range": 75
+        "y_range": 75,
+        "noisy": false
     },
     {
         "name": "y2",
@@ -35,7 +36,8 @@
         ],
         "particle_size": 2,
         "y_offset": 100,
-        "y_range": 75
+        "y_range": 75,
+        "noisy": false
     },
     {
         "name": "y1a",
@@ -53,7 +55,8 @@
             0
         ],
         "particle_size": 2,
-        "y_offset": 300
+        "y_offset": 300,
+        "noisy": false
     },
     {
         "name": "y2a",
@@ -71,7 +74,8 @@
             0
         ],
         "particle_size": 2,
-        "y_offset": 100
+        "y_offset": 100,
+        "noisy": false
     },
     {
         "name": "ya",
@@ -87,7 +91,8 @@
             0
         ],
         "particle_size": 2,
-        "y_offset": 600
+        "y_offset": 600,
+        "noisy": false
     },
     {
         "name": "yb",
@@ -103,6 +108,7 @@
             0
         ],
         "particle_size": 2,
-        "y_offset": 600
+        "y_offset": 600,
+        "noisy": false
     }
 ]

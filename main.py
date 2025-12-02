@@ -18,7 +18,7 @@ NOTES
 """
 
 SCALE_FACTOR = 10 # number of pixels that corresponds to 1m
-WAVE_SPEED = 340 # pixels/sec
+WAVE_SPEED = 100 # pixels/sec
 
 
 waves_list = []
@@ -39,7 +39,7 @@ print("""
 def setup_cmds():
 
     #        width, height, fps, time, res (particles per pixel)
-    consts = [1600, 800,    60,    1,     1]
+    consts = [1600, 800,    60,    0.5,     1]
 
     setup_cmd = input("Do you want to select settings?(y/n)\n>> ")
 
@@ -132,7 +132,8 @@ def live_cmds():
                 for wave in waves_list:
 
                     x = wave.__dict__.copy()
-                    x.pop("noise_map", None)
+                    x.pop("noise_class", None)
+                    x.pop("x_pos", None)
                     
                     waves_list_packed.append(x)
                 
@@ -521,9 +522,10 @@ class wave_object():
             # basic wave information
             name,
             ID=0,
+            x_pos=None,
 
             # drawing properties
-            draw=False,
+            draw=True,
             particle_size=2,
             y_offset=100,
             color=RED,
@@ -545,6 +547,7 @@ class wave_object():
         
         self.name = name
         self.ID = ID
+        self.x_pos = x_pos
 
         self.draw = draw
         self.color = color
@@ -602,7 +605,7 @@ class wave_object():
         #print(self.noise_class.tick)
         #print(len(x))
 
-        return (pos_array, self.color, self.particle_size, self.y_offset)
+        self.x_pos = pos_array
     
 
 
@@ -634,7 +637,7 @@ class wave_object():
             #pos_array.append([self.x_long(i, t), y])
             pos_array.append([x, y])
 
-        return (pos_array, self.color, self.particle_size, self.y_offset)
+        self.x_pos = pos_array
     
 
     # Functions for wave products
@@ -652,14 +655,12 @@ class wave_object():
 
         for wave in waves_to_add:
 
-            wave = wave.calc_sine_wave(t)
-
-            for i in range(len(wave[0])):
+            for i in range(len(wave.x_pos)):
 
                 pos_array[i][0] = x_pos_particles[i] + WIDTH / 10
-                pos_array[i][1] = pos_array[i][1] + wave[0][i][1]
+                pos_array[i][1] = pos_array[i][1] + wave.x_pos[i][1]
         
-        return (pos_array, self.color, self.particle_size, self.y_offset)
+        self.x_pos = pos_array
     
 
 
@@ -677,14 +678,13 @@ class wave_object():
 
         for wave in waves_to_add:
 
-            wave_data = wave.calc_long_wave(t)
+            for i in range(len(wave.x_pos)):
 
-            for i in range(len(wave_data[0])):
-
-                pos_array[i][0] = pos_array[i][0] + wave_data[0][i][0] / len(waves_to_add)
+                pos_array[i][0] = pos_array[i][0] + wave.x_pos[i][0] / len(waves_to_add)
                 pos_array[i][1] = y_noise_map[int(i)]
         
-        return (pos_array, self.color, self.particle_size, self.y_offset)
+        self.x_pos = pos_array
+
 
 
 # Function for producing noise
@@ -705,66 +705,76 @@ def play(wave, sampleRate=44100):
 
 
 
-# Classes and functions for drawing
-def draw_particles(*waves, high_x=None):
+# Function for updating simulation
+def update_simulation(waves_list, t):
+    
+    for wave in waves_list:
+        
+        if wave.ID == 0:
+            wave.calc_sine_wave(t)
+
+        if wave.ID == 1:
+            wave.calc_sine_wave_product(t, waves_list)
+
+        if wave.ID == 2:
+            wave.calc_long_wave(t)
+
+        if wave.ID == 3:
+            wave.calc_long_wave_product(t, waves_list)
+
+
+
+# Functions for rendering
+def draw_particles(*waves):
 
     for wave in waves:
 
-        for i in range(len(wave[0])):
+        for i in range(len(wave.x_pos)):
             
             pg.draw.circle(
                     screen, 
-                    wave[1],
-                    (wave[0][i][0], wave[0][i][1] + wave[3]), # position of particle
-                    wave[2]
-                    )
-            
-            if i == high_x:
-
-                pg.draw.circle(
-                    screen, 
-                    BABY_BLUE,
-                    (wave[0][i][0], wave[0][i][1] + wave[3]), # position of particle
-                    wave[2] * 2
+                    wave.color,
+                    (wave.x_pos[i][0], wave.x_pos[i][1] + wave.y_offset), # position of particle
+                    wave.particle_size
                     )
 
-def draw_line(*pos_array):
+def draw_line(*waves):
 
     points = []
 
     # create an array of points on the wave
-    for pos in pos_array:
+    for wave in waves:
 
-        for i in range(len(pos[0])):
+        for i in range(len(wave.x_pos)):
 
-            points.append([pos[0][i][0], pos[0][i][1] + pos[3]])
+            points.append([wave.x_pos[i][0], wave.x_pos[i][1] + wave.y_offset])
 
     # draw the waves
     pg.draw.lines(
         screen,
-        pos[1],
+        wave.color,
         False,
         points,
-        pos[2]
+        wave.particle_size
     )
 
-def draw_all(waves_list):
+def draw(waves_list):
     
     for wave in waves_list:
 
         if wave.draw:
 
             if wave.ID == 0:
-                draw_line(wave.calc_sine_wave(t))
+                draw_line(wave)
 
             if wave.ID == 1:
-                draw_line(wave.calc_sine_wave_product(t, waves_list))
+                draw_line(wave)
 
             if wave.ID == 2:
-                draw_particles(wave.calc_long_wave(t))
+                draw_particles(wave)
 
             if wave.ID == 3:
-                draw_particles(wave.calc_long_wave_product(t, waves_list))
+                draw_particles(wave)
 
 
 # Logic for GUI
@@ -782,8 +792,17 @@ pg.display.set_caption("Simple Wave Simulation")
 
 font = pg.font.Font(None, 20)
 
+# timing
 clock = pg.time.Clock()
 t = 0
+
+UPDATE_RATE_GOAL = 100
+UPDATE_DT = 1.0 / UPDATE_RATE_GOAL
+
+accumulator = 0.0
+last_time = time.perf_counter()
+
+update_simulation(waves_list, t)
 
 running = True
 while running:
@@ -791,23 +810,35 @@ while running:
         if event.type == pg.QUIT:
             running = False
 
-    # black screen
+    # --- Timing ---
+    now = time.perf_counter()
+    update_run_time = now - last_time
+    last_time = now
+    accumulator += update_run_time
+    
+    # --- Simulation ---
+    while accumulator >= UPDATE_DT:
+        
+        update_simulation(waves_list, t)
+
+        t += TIME_STEP_FACTOR / UPDATE_RATE_GOAL
+        
+        accumulator -= UPDATE_DT
+
+
+
+    # --- Rendering ---
     screen.fill((0, 0, 0))
-
-
-
-    draw_all(waves_list)
-
-
+    
+    # Draw and update variables at the framerate
+    draw(waves_list)
 
     # Get the current FPS
-    ups = int(clock.get_fps())
-    fps_text = font.render(f"UPS: {ups}", True, (255, 255, 255))
+    fps = int(clock.get_fps())
+    fps_text = font.render(f"FPS: {fps}", True, (255, 255, 255))
 
     screen.blit(fps_text, (10, 10))
-
-    # Update display
-    t += TIME_STEP_FACTOR / FRAME_RATE_GOAL
+    
     pg.display.flip()
     clock.tick(FRAME_RATE_GOAL)
 
