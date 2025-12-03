@@ -10,11 +10,6 @@ BABY_BLUE = (0, 255, 255)
 """
 NOTES
 
-- 50 pixels = 1m
-
-- wave speed is 340m/s (sound in air)
-- waves are frequency dependant
-
 """
 
 SCALE_FACTOR = 10 # number of pixels that corresponds to 1m
@@ -559,46 +554,9 @@ class wave_object():
 
         self.noise_class = noise_map()
 
-    # functions for simple sine waves
-    def x_sine(self, i):
-        return i + WIDTH / 10
 
-    def y_sine(self, x, t):
 
-        # calculate w: angular frequency, k: wavenumber
-        w = 2*np.pi * self.frequency
-        k = w / (self.velocity)
-        
-        if self.direction == "positive":
-            return self.amplitude * np.cos(k * x - w * t + self.delta)
-        
-        if self.direction == "negative":
-            return self.amplitude * np.cos(k * x + w * t + self.delta)
-        
-    def calc_sine_wave_legacy(self, t, x=x_pos_particles):
-
-        pos_array = []
-
-        for k, i in enumerate(x):
-
-            if self.noisy:
-                pos_array.append([self.x_sine(i), self.y_sine(i, t) + self.noise_class.noise_map[k - self.noise_class.tick]])
-
-            else:
-                pos_array.append([self.x_sine(i), self.y_sine(i, t)])
-
-        # tick logic for noise
-        if self.noise_class.tick == len(x):
-            self.noise_class.tick = 0
-
-        else:
-            self.noise_class.tick += 1
-
-        #print(self.noise_class.tick)
-        #print(len(x))
-
-        self.x_pos = pos_array
-        
+    # Functions for simple waves        
     def calc_sine_wave(self, t, x=x_pos_particles):
         
         def y_sine(x, t):
@@ -614,6 +572,8 @@ class wave_object():
 
         if self.noisy:
             pos_array = [x + WIDTH / 10, y_sine(x, t) + self.noise_class.noise_map]
+            
+            
         
         else:
             pos_array = [x + WIDTH / 10, y_sine(x, t)]
@@ -679,24 +639,6 @@ class wave_object():
 
 
 
-# Function for producing noise
-def play(wave, sampleRate=44100):
-
-    freq = wave.frequency
-
-    pg.mixer.init(sampleRate,-16,2,512)
-
-    arr = np.array([4096 * np.sin(2.0 * np.pi * freq * x / sampleRate) for x in range(0, sampleRate)]).astype(np.int16)
-    arr2 = np.c_[arr,arr]
-    
-    sound = pg.sndarray.make_sound(arr2)
-
-    sound.play(-1)
-    pg.time.delay(1000)
-    sound.stop()
-
-
-
 # Function for updating simulation
 def update_simulation(waves_list, t):
     
@@ -713,8 +655,6 @@ def update_simulation(waves_list, t):
 
         if wave.ID == 3:
             wave.calc_long_wave_product(t, waves_list)
-
-
 
 # Functions for rendering
 def draw(waves_list):
