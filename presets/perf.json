@@ -1,0 +1,122 @@
+[
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 100,
+        "frequency": 1.0625,
+        "wave_length": 94.11764705882354,
+        "velocity": 100,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "wave_name_to_add": null,
+        "noisy": false
+    },
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 200,
+        "frequency": 1.0625,
+        "wave_length": 94.11764705882354,
+        "velocity": 100,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "wave_name_to_add": null,
+        "noisy": false
+    },
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 300,
+        "frequency": 1.0625,
+        "wave_length": 94.11764705882354,
+        "velocity": 100,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "wave_name_to_add": null,
+        "noisy": false
+    },
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 400,
+        "frequency": 1.0625,
+        "wave_length": 94.11764705882354,
+        "velocity": 100,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "wave_name_to_add": null,
+        "noisy": false
+    },
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 500,
+        "frequency": 1.0625,
+        "wave_length": 94.11764705882354,
+        "velocity": 100,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "wave_name_to_add": null,
+        "noisy": false
+    },
+    {
+        "name": "y1",
+        "ID": 0,
+        "draw": true,
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "particle_size": 2,
+        "y_offset": 600,
+        "frequency": 1.0625,
+        "wave_length": 94.11764705882354,
+        "velocity": 100,
+        "direction": "positive",
+        "amplitude": 50,
+        "delta": 1.5707963267948966,
+        "wave_name_to_add": null,
+        "noisy": false
+    }
+]

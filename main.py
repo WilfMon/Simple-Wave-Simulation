@@ -488,12 +488,8 @@ Y_RANGE = 50
 # for positions of particles along x
 x_pos_particles = np.linspace(0, WAVE_RANGE, NUM)
 
-# create a noise map for longitudinal waves
-y_noise_map = []
-
-for i in x_pos_particles:
-
-    y_noise_map.append((random.random() - 0.5) * 2 * Y_RANGE)
+# create a noise map for longitudinal waves - uniform dist between -1 and 1
+y_noise_map = np.array([((random.random() - 0.5) * 2 * Y_RANGE) for _ in x_pos_particles])
 
 # class for creating a guass noise map
 class noise_map():
@@ -502,13 +498,9 @@ class noise_map():
         self.tick = tick
         self.noise_map = self.gauss_nosie_map()
 
-    def gauss_nosie_map(self, size=20):
+    def gauss_nosie_map(self, scale=10):
 
-        noise_map = []
-
-        for i in x_pos_particles:
-
-            noise_map.append(random.gauss(0, 1) * size)
+        noise_map = np.random.normal(loc=0, scale=scale, size=x_pos_particles.shape)
 
         return noise_map
 
@@ -583,7 +575,7 @@ class wave_object():
         if self.direction == "negative":
             return self.amplitude * np.cos(k * x + w * t + self.delta)
         
-    def calc_sine_wave(self, t, x=x_pos_particles):
+    def calc_sine_wave_legacy(self, t, x=x_pos_particles):
 
         pos_array = []
 
@@ -606,67 +598,70 @@ class wave_object():
         #print(len(x))
 
         self.x_pos = pos_array
+        
+    def calc_sine_wave(self, t, x=x_pos_particles):
+        
+        def y_sine(x, t):
+            # calculate w: angular frequency, k: wavenumber
+            w = 2*np.pi * self.frequency
+            k = w / (self.velocity)
+            
+            if self.direction == "positive":
+                return self.amplitude * np.cos(k * x - w * t + self.delta)
+            
+            if self.direction == "negative":
+                return self.amplitude * np.cos(k * x + w * t + self.delta)
+
+        if self.noisy:
+            pos_array = [x + WIDTH / 10, y_sine(x, t) + self.noise_class.noise_map]
+        
+        else:
+            pos_array = [x + WIDTH / 10, y_sine(x, t)]
+
+        self.x_pos = pos_array
     
 
-
-    # functions for long waves
-    def x_long(self, x, t):
-
-        # calculate w: angular frequency, k: wavenumber
-        w = 2*np.pi * self.frequency
-        k = w / (self.velocity)
         
-        if self.direction == "positive":
-            return x + self.amplitude * np.cos(w * t - k * x ) + WIDTH / 10
+    def calc_long_wave(self, t, x=x_pos_particles):
         
-        if self.direction == "negative":
-            return x + self.amplitude * np.cos(w * t + k * x ) + WIDTH / 10
+        def x_long(x, t):
+            # calculate w: angular frequency, k: wavenumber
+            w = 2*np.pi * self.frequency
+            k = w / (self.velocity)
+            
+            if self.direction == "positive":
+                return x + self.amplitude * np.cos(w * t - k * x ) + WIDTH / 10
+            
+            if self.direction == "negative":
+                return x + self.amplitude * np.cos(w * t + k * x ) + WIDTH / 10
 
-    def y_long(self, i):
-        return y_noise_map[i]
-        
-    def calc_long_wave(self, t, x_list=x_pos_particles):
-
-        pos_array = []
-
-        for i, x in enumerate(x_list):
-
-            x = self.x_long(x, t)
-            y = self.y_long(i)
-
-            #pos_array.append([self.x_long(i, t), y])
-            pos_array.append([x, y])
+        pos_array = [x_long(x, t), y_noise_map]
 
         self.x_pos = pos_array
     
 
     # Functions for wave products
-    def calc_sine_wave_product(self, t, wave_list):
+    def calc_sine_wave_product(self, wave_list):
 
-        pos_array = np.zeros((len(x_pos_particles), 2), dtype=int)
+        pos_array = np.zeros((2, len(x_pos_particles)))
+        pos_array[0] = x_pos_particles + WIDTH / 10
 
         waves_to_add = []
-
         for wave in wave_list:
-
+            
             if wave.name in set(self.wave_name_to_add):
-
                 waves_to_add.append(wave)
 
         for wave in waves_to_add:
 
-            for i in range(len(wave.x_pos)):
-
-                pos_array[i][0] = x_pos_particles[i] + WIDTH / 10
-                pos_array[i][1] = pos_array[i][1] + wave.x_pos[i][1]
+            pos_array[1] = pos_array[1] + wave.x_pos[1]
         
         self.x_pos = pos_array
-    
-
 
     def calc_long_wave_product(self, t, wave_list):
 
-        pos_array = np.zeros((len(x_pos_particles), 2), dtype=int)
+        pos_array = np.zeros((2, len(x_pos_particles)))
+        pos_array[1] = y_noise_map
 
         waves_to_add = []
 
@@ -678,10 +673,7 @@ class wave_object():
 
         for wave in waves_to_add:
 
-            for i in range(len(wave.x_pos)):
-
-                pos_array[i][0] = pos_array[i][0] + wave.x_pos[i][0] / len(waves_to_add)
-                pos_array[i][1] = y_noise_map[int(i)]
+            pos_array[0] = pos_array[0] + wave.x_pos[0] / len(waves_to_add)
         
         self.x_pos = pos_array
 
@@ -714,7 +706,7 @@ def update_simulation(waves_list, t):
             wave.calc_sine_wave(t)
 
         if wave.ID == 1:
-            wave.calc_sine_wave_product(t, waves_list)
+            wave.calc_sine_wave_product(waves_list)
 
         if wave.ID == 2:
             wave.calc_long_wave(t)
@@ -725,40 +717,40 @@ def update_simulation(waves_list, t):
 
 
 # Functions for rendering
-def draw_particles(*waves):
-
-    for wave in waves:
-
-        for i in range(len(wave.x_pos)):
-            
-            pg.draw.circle(
-                    screen, 
-                    wave.color,
-                    (wave.x_pos[i][0], wave.x_pos[i][1] + wave.y_offset), # position of particle
-                    wave.particle_size
-                    )
-
-def draw_line(*waves):
-
-    points = []
-
-    # create an array of points on the wave
-    for wave in waves:
-
-        for i in range(len(wave.x_pos)):
-
-            points.append([wave.x_pos[i][0], wave.x_pos[i][1] + wave.y_offset])
-
-    # draw the waves
-    pg.draw.lines(
-        screen,
-        wave.color,
-        False,
-        points,
-        wave.particle_size
-    )
-
 def draw(waves_list):
+    
+    def draw_particles(*waves):
+
+        for wave in waves:
+
+            for i in range(len(wave.x_pos[0])):
+                
+                pg.draw.circle(
+                        screen, 
+                        wave.color,
+                        (wave.x_pos[0][i], wave.x_pos[1][i] + wave.y_offset), # position of particle
+                        wave.particle_size
+                        )
+
+    def draw_line(*waves):
+
+        points = []
+
+        # create an array of points on the wave
+        for wave in waves:
+
+            for i in range(len(wave.x_pos[0])):
+
+                points.append([wave.x_pos[0][i], wave.x_pos[1][i] + wave.y_offset])
+
+        # draw the waves
+        pg.draw.lines(
+            screen,
+            wave.color,
+            False,
+            points,
+            wave.particle_size
+        )
     
     for wave in waves_list:
 
@@ -795,8 +787,9 @@ font = pg.font.Font(None, 20)
 # timing
 clock = pg.time.Clock()
 t = 0
+tst = 0
 
-UPDATE_RATE_GOAL = 100
+UPDATE_RATE_GOAL = 8000
 UPDATE_DT = 1.0 / UPDATE_RATE_GOAL
 
 accumulator = 0.0
@@ -834,10 +827,13 @@ while running:
     draw(waves_list)
 
     # Get the current FPS
+    ups_text = font.render(f"UPS: {UPDATE_RATE_GOAL}", True, (255, 255, 255))
+    
     fps = int(clock.get_fps())
     fps_text = font.render(f"FPS: {fps}", True, (255, 255, 255))
 
-    screen.blit(fps_text, (10, 10))
+    screen.blit(ups_text, (10, 10))
+    screen.blit(fps_text, (10, 25))
     
     pg.display.flip()
     clock.tick(FRAME_RATE_GOAL)
