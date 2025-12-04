@@ -380,8 +380,10 @@ def live_cmds():
                 name = cmd.split(" ")[1]
                 
                 for wave in waves_list:
+
+                    pass
                 
-                    if wave.name == name: play(wave)
+                    #if wave.name == name: play(wave)
 
         # Demos
             elif cmd.strip().lower().split(" ")[0] == "/d1":
@@ -729,7 +731,7 @@ clock = pg.time.Clock()
 t = 0
 tst = 0
 
-UPDATE_RATE_GOAL = 8000
+UPDATE_RATE_GOAL = 1000
 UPDATE_DT = 1.0 / UPDATE_RATE_GOAL
 
 accumulator = 0.0
